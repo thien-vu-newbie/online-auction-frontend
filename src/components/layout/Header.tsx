@@ -29,14 +29,17 @@ import {
   UserPlusIcon,
   CaretDownIcon,
   BellIcon,
+  SignOutIcon,
 } from '@phosphor-icons/react';
 import { useAppSelector } from '@/store/hooks';
+import { useLogout } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
 export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const { categories } = useAppSelector((state) => state.categories);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const logoutMutation = useLogout();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-md">
@@ -189,7 +192,7 @@ export function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="gap-2">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground text-sm font-medium">
-                        {user?.name?.charAt(0) || 'U'}
+                        {user?.firstName?.charAt(0) || 'U'}
                       </div>
                       <CaretDownIcon size={16} className="hidden sm:block" />
                     </Button>
@@ -197,7 +200,7 @@ export function Header() {
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">{user?.name}</p>
+                        <p className="text-sm font-medium">{user?.firstName} {user?.lastName}</p>
                         <p className="text-xs text-muted-foreground">{user?.email}</p>
                       </div>
                     </DropdownMenuLabel>
@@ -212,7 +215,11 @@ export function Header() {
                       <Link to="/won-auctions">Đã thắng</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">
+                    <DropdownMenuItem 
+                      className="text-destructive cursor-pointer"
+                      onClick={() => logoutMutation.mutate()}
+                    >
+                      <SignOutIcon size={16} className="mr-2" />
                       Đăng xuất
                     </DropdownMenuItem>
                   </DropdownMenuContent>
