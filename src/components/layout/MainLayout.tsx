@@ -10,8 +10,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      {/* Add padding top to account for fixed header */}
-      <div className="flex-1 pt-[104px] md:pt-[120px]">
+      <div className="flex-1">
         {children}
       </div>
       <Footer />

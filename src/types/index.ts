@@ -40,14 +40,89 @@ export type UserRole = 'guest' | 'bidder' | 'seller' | 'admin';
 
 export interface User {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: UserRole;
   rating: number;
   totalRatings: number;
   positiveRatings: number;
   avatar?: string;
+  isVerified: boolean;
+  dateOfBirth?: string;
+  address?: string;
   createdAt: string;
+}
+
+// Auth Types
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+  address: string;
+  dateOfBirth?: string;
+  recaptchaToken: string;
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface ResendOtpRequest {
+  email: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+// Auth Response Types
+export interface AuthResponse {
+  access_token: string;
+  refresh_token: string;
+  user: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: UserRole;
+  };
+}
+
+export interface RegisterResponse {
+  message: string;
+  email: string;
+}
+
+export interface OtpResponse {
+  message: string;
+  email?: string;
+}
+
+// Form data types (for UI state)
+export interface RegisterFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  address: string;
+  dateOfBirth?: string;
 }
 
 // Bid Types
