@@ -3,6 +3,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
+import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
 import { Toaster } from '@/components/ui/sonner';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
         {/* Auth routes - without MainLayout */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
         {/* Main app routes - with MainLayout */}
         <Route
