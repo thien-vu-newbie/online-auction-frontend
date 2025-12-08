@@ -143,13 +143,14 @@ export function LoginPage() {
         </div>
 
         {/* Remember me */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 cursor-pointer">
           <Checkbox
             id="remember"
             checked={formData.rememberMe}
             onCheckedChange={(checked) =>
               setFormData({ ...formData, rememberMe: checked as boolean })
             }
+            className="cursor-pointer"
           />
           <label
             htmlFor="remember"

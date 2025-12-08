@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,7 +40,11 @@ export function RegisterPage() {
   const registerMutation = useRegister();
   const verifyOtpMutation = useVerifyOtp();
   const resendOtpMutation = useResendOtp();
-  const { executeRecaptcha } = useGoogleReCaptcha();
+
+  // reCAPTCHA v2
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI';
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -119,22 +123,18 @@ export function RegisterPage() {
     return Object.keys(newErrors).length === 0;
   }, [formData]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    // Check reCAPTCHA
+    if (!recaptchaToken) {
+      setErrors((prev) => ({ ...prev, recaptcha: 'Vui lòng xác nhận bạn không phải robot' }));
+      return;
+    }
+
     // Combine firstName and lastName for backend
     const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-
-    // Get reCAPTCHA token if available, otherwise use empty string (backend will handle)
-    let recaptchaToken = '';
-    if (executeRecaptcha) {
-      try {
-        recaptchaToken = await executeRecaptcha('register');
-      } catch (err) {
-        console.warn('reCAPTCHA failed, proceeding without token:', err);
-      }
-    }
 
     registerMutation.mutate({
       fullName,
@@ -143,6 +143,19 @@ export function RegisterPage() {
       address: formData.address,
       recaptchaToken,
     });
+  };
+
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
+    if (token && errors.recaptcha) {
+      const newErrors = { ...errors };
+      delete newErrors.recaptcha;
+      setErrors(newErrors);
+    }
+  };
+
+  const handleRecaptchaExpired = () => {
+    setRecaptchaToken(null);
   };
 
   const handleOtpChange = (index: number, value: string) => {
@@ -326,7 +339,7 @@ export function RegisterPage() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
             {showPassword ? <EyeSlashIcon size={20} /> : <EyeIcon size={20} />}
           </button>
@@ -364,7 +377,7 @@ export function RegisterPage() {
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
             {showConfirmPassword ? (
               <EyeSlashIcon size={20} />
@@ -384,7 +397,7 @@ export function RegisterPage() {
         <div className="relative">
           <MapPinIcon
             size={20}
-            className="absolute left-3 top-3 text-muted-foreground"
+            className="absolute left-3 top-2 text-muted-foreground"
           />
           <Textarea
             id="address"
@@ -402,6 +415,21 @@ export function RegisterPage() {
         </div>
         {errors.address && (
           <p className="text-sm text-destructive">{errors.address}</p>
+        )}
+      </div>
+
+      {/* reCAPTCHA */}
+      <div className="space-y-2">
+        <div className="flex justify-center">
+          <ReCAPTCHA
+            ref={recaptchaRef}
+            sitekey={RECAPTCHA_SITE_KEY}
+            onChange={handleRecaptchaChange}
+            onExpired={handleRecaptchaExpired}
+          />
+        </div>
+        {errors.recaptcha && (
+          <p className="text-sm text-destructive text-center">{errors.recaptcha}</p>
         )}
       </div>
 
