@@ -19,7 +19,7 @@ export function HomePage() {
       <HeroSection />
 
       {/* Category Showcase */}
-      <CategoryShowcase />
+      {/* <CategoryShowcase /> */}
 
       {/* Ending Soon Products */}
       <ProductSection
