@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,16 +22,29 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
+  const navigate = useNavigate();
   const endingSoon = isEndingSoon(product.endTime);
   const hasEnded = new Date(product.endTime) < new Date();
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent navigation if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a')) {
+      return;
+    }
+    navigate(`/product/${product.id}`);
+  };
+
   return (
-    <Card className={cn(
-      "group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 py-0",
-      product.isNew && "ring-2 ring-primary/50 shadow-primary/20",
-      className
-    )}>
-      <div className="relative aspect-square overflow-hidden bg-muted">
+    <Card 
+      onClick={handleCardClick}
+      className={cn(
+        "group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 py-0 cursor-pointer h-full flex flex-col",
+        product.isNew && "ring-2 ring-primary/50 shadow-primary/20",
+        className
+      )}
+    >
+      <div className="relative aspect-square overflow-hidden bg-muted flex-shrink-0">
         {/* Image */}
         <img
           src={product.imageUrl}
@@ -70,7 +83,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-2 right-2 bg-white/90 hover:bg-white hover:text-destructive shadow-md opacity-0 group-hover:opacity-100 transition-all"
+                className="absolute top-2 right-2 bg-white/90 hover:bg-white hover:text-destructive shadow-md opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
               >
                 <HeartIcon size={18} />
               </Button>
@@ -84,7 +97,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         {/* Quick bid button */}
         {!hasEnded && (
           <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
-            <Button className="w-full gap-2 shadow-lg" size="sm">
+            <Button className="w-full gap-2 shadow-lg cursor-pointer" size="sm">
               <GavelIcon size={16} weight="fill" />
               Đặt giá ngay
             </Button>
@@ -92,10 +105,11 @@ export function ProductCard({ product, className }: ProductCardProps) {
         )}
       </div>
 
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
         {/* Category */}
         <Link 
           to={`/category/${product.categoryId}`}
+          onClick={(e) => e.stopPropagation()}
           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
         >
           <TagIcon size={12} />
@@ -103,11 +117,9 @@ export function ProductCard({ product, className }: ProductCardProps) {
         </Link>
 
         {/* Title */}
-        <Link to={`/product/${product.id}`}>
-          <h3 className="font-semibold line-clamp-2 hover:text-primary transition-colors leading-tight">
-            {product.name}
-          </h3>
-        </Link>
+        <h3 className="font-semibold line-clamp-2 hover:text-primary transition-colors leading-tight">
+          {product.name}
+        </h3>
 
         {/* Price section */}
         <div className="space-y-1">
@@ -126,6 +138,9 @@ export function ProductCard({ product, className }: ProductCardProps) {
             </div>
           )}
         </div>
+
+        {/* Spacer to push stats and time to bottom */}
+        <div className="flex-1" />
 
         {/* Stats */}
         <div className="flex items-center justify-between pt-2 border-t text-xs text-muted-foreground">
