@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { HomePage } from '@/pages/HomePage';
 import { ProductDetailPage } from '@/pages/ProductDetailPage';
+import { CategoryPage } from '@/pages/CategoryPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
@@ -24,9 +25,9 @@ function App() {
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/product/:id" element={<ProductDetailPage />} />
+                <Route path="/category/:slug" element={<CategoryPage />} />
                 {/* Future routes will be added here */}
                 {/* <Route path="/products" element={<ProductListPage />} /> */}
-                {/* <Route path="/category/:slug" element={<CategoryPage />} /> */}
                 {/* <Route path="/search" element={<SearchPage />} /> */}
                 {/* <Route path="/profile" element={<ProfilePage />} /> */}
                 {/* <Route path="/watchlist" element={<WatchlistPage />} /> */}
