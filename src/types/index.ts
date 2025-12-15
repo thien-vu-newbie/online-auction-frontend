@@ -11,6 +11,7 @@ export interface Product {
   description: string;
   categoryId: string;
   categoryName: string;
+  categorySlug: string;
   sellerId: string;
   sellerName: string;
   sellerRating: number;

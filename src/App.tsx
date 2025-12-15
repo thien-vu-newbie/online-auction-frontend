@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { HomePage } from '@/pages/HomePage';
@@ -7,8 +8,17 @@ import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
 import { Toaster } from '@/components/ui/sonner';
+import { useAppDispatch } from '@/store/hooks';
+import { fetchCategories } from '@/store/slices/categoriesSlice';
 
 function App() {
+  const dispatch = useAppDispatch();
+
+  // Fetch categories on app mount
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
+
   return (
     <Router>
       <Routes>

@@ -34,6 +34,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     }
     navigate(`/product/${product.id}`);
   };
+  const isHomePage = window.location.pathname === '/';
 
   return (
     <Card 
@@ -107,15 +108,16 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
       <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
         {/* Category */}
-        <Link 
-          to={`/category/${product.categoryId}`}
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-        >
-          <TagIcon size={12} />
-          {product.categoryName}
-        </Link>
-
+        {isHomePage && (
+          <Link 
+            to={`/category/${product.categorySlug}`}
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+          >
+            <TagIcon size={12} />
+            {product.categoryName}
+          </Link>
+        )}
         {/* Title */}
         <h3 className="font-semibold line-clamp-2 hover:text-primary transition-colors leading-tight">
           {product.name}

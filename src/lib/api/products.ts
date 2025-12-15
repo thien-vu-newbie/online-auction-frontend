@@ -77,12 +77,28 @@ const isNewProduct = (createdAt: string): boolean => {
   return diffMinutes <= 30;
 };
 
+// Helper to generate slug from category name
+const generateSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+};
+
 // Transform backend product to frontend Product type
 export const transformProduct = (backendProduct: BackendProduct): Product => {
   const seller = typeof backendProduct.sellerId === 'object' ? backendProduct.sellerId : null;
   const category = typeof backendProduct.categoryId === 'object' ? backendProduct.categoryId : null;
   const winner = typeof backendProduct.currentWinnerId === 'object' ? backendProduct.currentWinnerId : null;
 
+  const categoryName = category?.name || 'Không xác định';
+  
   return {
     id: backendProduct._id,
     name: backendProduct.name,
@@ -94,7 +110,8 @@ export const transformProduct = (backendProduct: BackendProduct): Product => {
     imageUrl: backendProduct.thumbnail,
     images: backendProduct.images,
     categoryId: category?._id || (backendProduct.categoryId as string),
-    categoryName: category?.name || 'Không xác định',
+    categoryName,
+    categorySlug: generateSlug(categoryName),
     sellerId: seller?._id || (backendProduct.sellerId as string),
     sellerName: seller?.fullName || 'Không xác định',
     sellerRating: seller ? calculateRating(seller.ratingPositive, seller.ratingNegative) : 100,
@@ -123,6 +140,7 @@ const transformRelatedProduct = (product: BackendProductDetail['relatedProducts'
     images: [],
     categoryId: '',
     categoryName: '',
+    categorySlug: '',
     sellerId: '',
     sellerName: '',
     sellerRating: 100,
