@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ProductCard } from './ProductCard';
 import { ArrowRightIcon } from '@phosphor-icons/react';
 import type { Product } from '@/types';
@@ -14,6 +15,7 @@ interface ProductSectionProps {
   viewAllLink?: string;
   className?: string;
   variant?: 'default' | 'gradient';
+  isLoading?: boolean;
 }
 
 export function ProductSection({
@@ -24,6 +26,7 @@ export function ProductSection({
   viewAllLink,
   className,
   variant = 'default',
+  isLoading = false,
 }: ProductSectionProps) {
   return (
     <section className={cn(
@@ -55,15 +58,31 @@ export function ProductSection({
           )}
         </div>
 
+        {/* Loading skeletons */}
+        {isLoading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className="aspect-square w-full rounded-lg" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-6 w-full" />
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Products grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {!isLoading && products.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
 
         {/* Empty state */}
-        {products.length === 0 && (
+        {!isLoading && products.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
             Chưa có sản phẩm nào trong danh mục này
           </div>

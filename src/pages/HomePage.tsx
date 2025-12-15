@@ -1,7 +1,7 @@
 import { HeroSection } from '@/components/home/HeroSection';
 import { CategoryShowcase } from '@/components/home/CategoryShowcase';
 import { ProductSection } from '@/components/product/ProductSection';
-import { useAppSelector } from '@/store/hooks';
+import { useTopEndingSoon, useTopMostBids, useTopHighestPrice } from '@/hooks/useProducts';
 import {
   ClockIcon,
   FireIcon,
@@ -9,9 +9,9 @@ import {
 } from '@phosphor-icons/react';
 
 export function HomePage() {
-  const { endingSoon, mostBids, highestPrice } = useAppSelector(
-    (state) => state.products
-  );
+  const { data: endingSoon = [], isLoading: loadingEndingSoon } = useTopEndingSoon(5);
+  const { data: mostBids = [], isLoading: loadingMostBids } = useTopMostBids(5);
+  const { data: highestPrice = [], isLoading: loadingHighestPrice } = useTopHighestPrice(5);
 
   return (
     <main className="min-h-screen">
@@ -29,6 +29,7 @@ export function HomePage() {
         products={endingSoon}
         viewAllLink="/products?sort=ending-soon"
         variant="gradient"
+        isLoading={loadingEndingSoon}
       />
 
       {/* Most Bids Products */}
@@ -38,6 +39,7 @@ export function HomePage() {
         icon={<FireIcon size={32} weight="duotone" />}
         products={mostBids}
         viewAllLink="/products?sort=most-bids"
+        isLoading={loadingMostBids}
       />
 
       {/* Highest Price Products */}
@@ -48,6 +50,7 @@ export function HomePage() {
         products={highestPrice}
         viewAllLink="/products?sort=highest-price"
         variant="gradient"
+        isLoading={loadingHighestPrice}
       />
     </main>
   );
