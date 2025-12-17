@@ -1,14 +1,14 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -39,13 +39,16 @@ import {
   ChatCircleDotsIcon,
   ListBulletsIcon,
   ArrowsClockwiseIcon,
+  WarningCircleIcon,
 } from '@phosphor-icons/react';
 import { ProductImageGallery } from '@/components/product/ProductImageGallery';
 import { BidHistory } from '@/components/product/BidHistory';
 import { ProductQA } from '@/components/product/ProductQA';
 import { ProductCard } from '@/components/product/ProductCard';
+import { BidInput } from '@/components/product/BidInput';
 import { useAppSelector } from '@/store/hooks';
-import type { Product, Bid, Question } from '@/types';
+import { useProductDetail } from '@/hooks/useProducts';
+import type { Bid, Question } from '@/types';
 import {
   formatCurrency,
   formatDate,
@@ -54,236 +57,86 @@ import {
 } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 
-// Mock data - replace with API calls
-const mockProduct: Product = {
-  id: '1',
-  name: 'iPhone 15 Pro Max 256GB - Natural Titanium - Fullbox 99%',
-  currentPrice: 28500000,
-  buyNowPrice: 32000000,
-  startPrice: 25000000,
-  bidStep: 500000,
-  imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800',
-  images: [
-    'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800',
-    'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800',
-    'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=800',
-    'https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?w=800',
-  ],
-  description: `
-    <h3>Thông tin sản phẩm</h3>
-    <p>iPhone 15 Pro Max 256GB màu Natural Titanium, tình trạng 99% như mới.</p>
-    <ul>
-      <li>Máy fullbox, đầy đủ phụ kiện</li>
-      <li>Pin 98%, bảo hành Apple đến tháng 3/2025</li>
-      <li>Không trầy xước, không lỗi</li>
-      <li>Face ID hoạt động tốt</li>
-      <li>Tất cả chức năng đều hoạt động bình thường</li>
-    </ul>
-    <h3>Cam kết</h3>
-    <p>Cam kết máy chính hãng, nguồn gốc rõ ràng. Hỗ trợ kiểm tra thoải mái trước khi thanh toán.</p>
-  `,
-  categoryId: 'phones',
-  categoryName: 'Điện thoại di động',
-  sellerId: 'seller1',
-  sellerName: 'TechStore VN',
-  sellerRating: 98,
-  highestBidderId: 'bidder1',
-  highestBidderName: 'Nguyễn Văn Khoa',
-  highestBidderRating: 95,
-  bidCount: 12,
-  startTime: '2024-12-01T10:00:00Z',
-  endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
-  createdAt: '2024-12-01T10:00:00Z',
-  isNew: false,
-  autoExtend: true,
-};
-
-const mockBids: Bid[] = [
-  { id: '1', productId: '1', bidderId: 'bidder1', bidderName: 'Nguyễn Văn Khoa', amount: 28500000, createdAt: '2024-12-07T10:43:00Z' },
-  { id: '2', productId: '1', bidderId: 'bidder2', bidderName: 'Trần Văn Kha', amount: 28000000, createdAt: '2024-12-07T09:43:00Z' },
-  { id: '3', productId: '1', bidderId: 'bidder3', bidderName: 'Lê Minh Tuấn', amount: 27500000, createdAt: '2024-12-07T08:43:00Z' },
-  { id: '4', productId: '1', bidderId: 'bidder4', bidderName: 'Phạm Quốc Khánh', amount: 27000000, createdAt: '2024-12-07T07:43:00Z' },
-  { id: '5', productId: '1', bidderId: 'bidder5', bidderName: 'Hoàng Văn Nam', amount: 26500000, createdAt: '2024-12-06T15:30:00Z' },
-];
-
-const mockQuestions: Question[] = [
-  {
-    id: '1',
-    productId: '1',
-    askerId: 'user1',
-    askerName: 'Minh Tú',
-    question: 'Máy còn bảo hành Apple không ạ?',
-    answer: 'Máy còn bảo hành Apple đến tháng 3/2025 nhé bạn.',
-    answeredAt: '2024-12-05T14:30:00Z',
-    createdAt: '2024-12-05T10:00:00Z',
-  },
-  {
-    id: '2',
-    productId: '1',
-    askerId: 'user2',
-    askerName: 'Hồng Nhung',
-    question: 'Máy có bị rớt hay vào nước chưa ạ?',
-    answer: 'Máy chưa từng rớt hay vào nước bạn nhé. Mình cam kết máy nguyên zin 100%.',
-    answeredAt: '2024-12-06T09:00:00Z',
-    createdAt: '2024-12-06T08:00:00Z',
-  },
-  {
-    id: '3',
-    productId: '1',
-    askerId: 'user3',
-    askerName: 'Văn Hùng',
-    question: 'Ship COD được không shop?',
-    createdAt: '2024-12-07T11:00:00Z',
-  },
-];
-
-const mockRelatedProducts: Product[] = [
-  {
-    id: '2',
-    name: 'iPhone 14 Pro 128GB Space Black',
-    currentPrice: 18500000,
-    startPrice: 16000000,
-    bidStep: 200000,
-    imageUrl: 'https://images.unsplash.com/photo-1678685888221-cda773a3dcdb?w=400',
-    images: [],
-    description: '',
-    categoryId: 'phones',
-    categoryName: 'Điện thoại di động',
-    sellerId: 'seller2',
-    sellerName: 'Mobile Zone',
-    sellerRating: 96,
-    bidCount: 8,
-    startTime: '2024-12-02T10:00:00Z',
-    endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: '2024-12-02T10:00:00Z',
-    autoExtend: false,
-  },
-  {
-    id: '3',
-    name: 'Samsung Galaxy S24 Ultra 512GB',
-    currentPrice: 24000000,
-    buyNowPrice: 28000000,
-    startPrice: 22000000,
-    bidStep: 500000,
-    imageUrl: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=400',
-    images: [],
-    description: '',
-    categoryId: 'phones',
-    categoryName: 'Điện thoại di động',
-    sellerId: 'seller3',
-    sellerName: 'Galaxy Store',
-    sellerRating: 94,
-    bidCount: 15,
-    startTime: '2024-12-01T08:00:00Z',
-    endTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: '2024-12-01T08:00:00Z',
-    autoExtend: true,
-  },
-  {
-    id: '4',
-    name: 'Google Pixel 8 Pro 256GB',
-    currentPrice: 15000000,
-    startPrice: 14000000,
-    bidStep: 200000,
-    imageUrl: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400',
-    images: [],
-    description: '',
-    categoryId: 'phones',
-    categoryName: 'Điện thoại di động',
-    sellerId: 'seller1',
-    sellerName: 'TechStore VN',
-    sellerRating: 98,
-    bidCount: 5,
-    startTime: '2024-12-03T12:00:00Z',
-    endTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: '2024-12-03T12:00:00Z',
-    autoExtend: false,
-  },
-  {
-    id: '5',
-    name: 'OnePlus 12 16GB/512GB',
-    currentPrice: 16500000,
-    startPrice: 15000000,
-    bidStep: 300000,
-    imageUrl: 'https://images.unsplash.com/photo-1546054454-aa26e2b734c7?w=400',
-    images: [],
-    description: '',
-    categoryId: 'phones',
-    categoryName: 'Điện thoại di động',
-    sellerId: 'seller4',
-    sellerName: 'Phone Hub',
-    sellerRating: 92,
-    bidCount: 3,
-    startTime: '2024-12-04T14:00:00Z',
-    endTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: '2024-12-04T14:00:00Z',
-    isNew: true,
-    autoExtend: true,
-  },
-  {
-    id: '6',
-    name: 'Xiaomi 14 Ultra 512GB',
-    currentPrice: 22000000,
-    buyNowPrice: 25000000,
-    startPrice: 20000000,
-    bidStep: 500000,
-    imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400',
-    images: [],
-    description: '',
-    categoryId: 'phones',
-    categoryName: 'Điện thoại di động',
-    sellerId: 'seller5',
-    sellerName: 'Mi Store Official',
-    sellerRating: 97,
-    bidCount: 10,
-    startTime: '2024-12-02T16:00:00Z',
-    endTime: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: '2024-12-02T16:00:00Z',
-    autoExtend: false,
-  },
-];
+// TODO: Replace with API calls when bids/questions endpoints are ready
+const mockBids: Bid[] = [];
+const mockQuestions: Question[] = [];
 
 export function ProductDetailPage() {
   const { id: productId } = useParams<{ id: string }>();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   
-  // Mock data - replace with API calls using productId
-  const product = mockProduct;
+  // Fetch product data from API
+  const { data, isLoading, error } = useProductDetail(productId);
+  
+  const product = data?.product;
+  const relatedProducts = data?.relatedProducts || [];
+  
+  // TODO: Fetch from separate endpoints when available
   const bids = mockBids;
   const questions = mockQuestions;
-  const relatedProducts = mockRelatedProducts;
-  
-  // Log productId for future API integration
-  console.log('Loading product:', productId);
 
   // Scroll to top when page loads
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [productId]);
   
-  const [bidAmount, setBidAmount] = useState(
-    product.currentPrice + product.bidStep
-  );
   const [isInWatchlist, setIsInWatchlist] = useState(false);
-  
-  // Memoize time-based calculations
-  const { endingSoon, hasEnded, isWithin3Days } = useMemo(() => {
-    const now = new Date();
-    const endDate = new Date(product.endTime);
-    const diffDays = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-    return {
-      endingSoon: isEndingSoon(product.endTime),
-      hasEnded: endDate < now,
-      isWithin3Days: diffDays <= 3,
-    };
-  }, [product.endTime]);
-  
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
+        <div className="container mx-auto px-4 py-6 space-y-8">
+          <Skeleton className="h-6 w-64" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Skeleton className="aspect-square rounded-lg" />
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-40 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="p-8 text-center space-y-4">
+            <WarningCircleIcon size={64} className="mx-auto text-destructive" />
+            <h2 className="text-xl font-bold">Không tìm thấy sản phẩm</h2>
+            <p className="text-muted-foreground">
+              Sản phẩm bạn đang tìm không tồn tại hoặc đã bị xóa.
+            </p>
+            <Button asChild>
+              <Link to="/">Quay về trang chủ</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // After this point, product is guaranteed to be defined
   const suggestedBid = product.currentPrice + product.bidStep;
   const isSeller = user?.id === product.sellerId;
 
-  const handleBid = () => {
+  // Time-based calculations
+  const now = new Date();
+  const endDate = new Date(product.endTime);
+  const diffDays = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+  const endingSoon = isEndingSoon(product.endTime);
+  const hasEnded = endDate < now;
+  const isWithin3Days = diffDays <= 3;
+
+  const handleBid = (amount: number) => {
     // TODO: Implement bid logic
-    console.log('Placing bid:', bidAmount);
+    console.log('Placing bid:', amount);
   };
 
   const handleBuyNow = () => {
@@ -479,38 +332,11 @@ export function ProductDetailPage() {
               <Card>
                 <CardContent className="p-6 space-y-4">
                   {/* Bid Input */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Nhập giá đặt</span>
-                      <span className="text-muted-foreground">
-                        Đề nghị: {formatCurrency(suggestedBid)}
-                      </span>
-                    </div>
-                    <div className="flex gap-2 items-stretch">
-                      <Input
-                        type="number"
-                        value={bidAmount}
-                        onChange={(e) => setBidAmount(Number(e.target.value))}
-                        min={suggestedBid}
-                        step={product.bidStep}
-                        className="text-lg font-semibold h-11"
-                      />
-                      <Button
-                        onClick={handleBid}
-                        disabled={bidAmount < suggestedBid}
-                        className="gap-2 px-6 cursor-pointer h-11"
-                      >
-                        <GavelIcon size={20} weight="fill" />
-                        Đặt giá
-                      </Button>
-                    </div>
-                    {bidAmount < suggestedBid && (
-                      <p className="text-xs text-destructive flex items-center gap-1">
-                        <InfoIcon size={12} />
-                        Giá đặt phải từ {formatCurrency(suggestedBid)} trở lên
-                      </p>
-                    )}
-                  </div>
+                  <BidInput
+                    suggestedBid={suggestedBid}
+                    bidStep={product.bidStep}
+                    onBid={handleBid}
+                  />
 
                   {/* Buy Now Button */}
                   {product.buyNowPrice && (

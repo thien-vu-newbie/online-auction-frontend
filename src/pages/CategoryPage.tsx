@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
   SelectContent,
@@ -34,7 +35,8 @@ import {
 } from '@phosphor-icons/react';
 import { ProductCard } from '@/components/product/ProductCard';
 import { useAppSelector } from '@/store/hooks';
-import type { Product, Category } from '@/types';
+import { useProductsByCategory } from '@/hooks/useProducts';
+import type { Category } from '@/types';
 import { cn } from '@/lib/utils';
 
 // Category styling configurations
@@ -53,178 +55,6 @@ const categoryIconColors: Record<string, string> = {
 };
 
 type SortOption = 'newest' | 'ending-soon' | 'price-asc' | 'price-desc' | 'most-bids';
-
-// Mock products - replace with API
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'iPhone 15 Pro Max 256GB - Natural Titanium',
-    currentPrice: 28500000,
-    buyNowPrice: 32000000,
-    startPrice: 25000000,
-    bidStep: 500000,
-    imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400',
-    images: [],
-    description: '',
-    categoryId: 'dien-thoai',
-    categoryName: 'Điện thoại di động',
-    sellerId: 'seller1',
-    sellerName: 'TechStore VN',
-    sellerRating: 98,
-    highestBidderId: 'bidder1',
-    highestBidderName: 'Nguyễn Văn A',
-    bidCount: 12,
-    startTime: '2024-12-01T10:00:00Z',
-    endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 mins ago - NEW
-    isNew: true,
-    autoExtend: true,
-  },
-  {
-    id: '2',
-    name: 'iPhone 14 Pro 128GB Space Black',
-    currentPrice: 18500000,
-    startPrice: 16000000,
-    bidStep: 200000,
-    imageUrl: 'https://images.unsplash.com/photo-1678685888221-cda773a3dcdb?w=400',
-    images: [],
-    description: '',
-    categoryId: 'dien-thoai',
-    categoryName: 'Điện thoại di động',
-    sellerId: 'seller2',
-    sellerName: 'Mobile Zone',
-    sellerRating: 96,
-    bidCount: 8,
-    startTime: '2024-12-02T10:00:00Z',
-    endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: '2024-12-02T10:00:00Z',
-    autoExtend: false,
-  },
-  {
-    id: '3',
-    name: 'Samsung Galaxy S24 Ultra 512GB',
-    currentPrice: 24000000,
-    buyNowPrice: 28000000,
-    startPrice: 22000000,
-    bidStep: 500000,
-    imageUrl: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=400',
-    images: [],
-    description: '',
-    categoryId: 'dien-thoai',
-    categoryName: 'Điện thoại di động',
-    sellerId: 'seller3',
-    sellerName: 'Galaxy Store',
-    sellerRating: 94,
-    bidCount: 15,
-    startTime: '2024-12-01T08:00:00Z',
-    endTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: '2024-12-01T08:00:00Z',
-    autoExtend: true,
-  },
-  {
-    id: '4',
-    name: 'Google Pixel 8 Pro 256GB Obsidian',
-    currentPrice: 15000000,
-    startPrice: 14000000,
-    bidStep: 200000,
-    imageUrl: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400',
-    images: [],
-    description: '',
-    categoryId: 'dien-thoai',
-    categoryName: 'Điện thoại di động',
-    sellerId: 'seller1',
-    sellerName: 'TechStore VN',
-    sellerRating: 98,
-    bidCount: 5,
-    startTime: '2024-12-03T12:00:00Z',
-    endTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: '2024-12-03T12:00:00Z',
-    autoExtend: false,
-  },
-  {
-    id: '5',
-    name: 'MacBook Pro 14" M3 Pro 512GB',
-    currentPrice: 45000000,
-    buyNowPrice: 52000000,
-    startPrice: 42000000,
-    bidStep: 1000000,
-    imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400',
-    images: [],
-    description: '',
-    categoryId: 'laptop',
-    categoryName: 'Laptop',
-    sellerId: 'seller4',
-    sellerName: 'Apple Reseller',
-    sellerRating: 99,
-    bidCount: 20,
-    startTime: '2024-12-01T06:00:00Z',
-    endTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 mins ago - NEW
-    isNew: true,
-    autoExtend: true,
-  },
-  {
-    id: '6',
-    name: 'Dell XPS 15 9530 - Core i7',
-    currentPrice: 32000000,
-    startPrice: 30000000,
-    bidStep: 500000,
-    imageUrl: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400',
-    images: [],
-    description: '',
-    categoryId: 'laptop',
-    categoryName: 'Laptop',
-    sellerId: 'seller5',
-    sellerName: 'Dell Official',
-    sellerRating: 97,
-    bidCount: 7,
-    startTime: '2024-12-02T14:00:00Z',
-    endTime: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: '2024-12-02T14:00:00Z',
-    autoExtend: false,
-  },
-  {
-    id: '7',
-    name: 'ASUS ROG Zephyrus G14 RTX 4060',
-    currentPrice: 38000000,
-    buyNowPrice: 42000000,
-    startPrice: 35000000,
-    bidStep: 500000,
-    imageUrl: 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400',
-    images: [],
-    description: '',
-    categoryId: 'laptop',
-    categoryName: 'Laptop',
-    sellerId: 'seller6',
-    sellerName: 'Gaming Gear',
-    sellerRating: 95,
-    bidCount: 11,
-    startTime: '2024-12-01T16:00:00Z',
-    endTime: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(), // 12 hours - ending soon
-    createdAt: '2024-12-01T16:00:00Z',
-    autoExtend: true,
-  },
-  {
-    id: '8',
-    name: 'Sony WH-1000XM5 Wireless Headphones',
-    currentPrice: 6500000,
-    startPrice: 5500000,
-    bidStep: 100000,
-    imageUrl: 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=400',
-    images: [],
-    description: '',
-    categoryId: 'phu-kien',
-    categoryName: 'Phụ kiện',
-    sellerId: 'seller7',
-    sellerName: 'Audio World',
-    sellerRating: 93,
-    bidCount: 9,
-    startTime: '2024-12-03T10:00:00Z',
-    endTime: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: '2024-12-03T10:00:00Z',
-    autoExtend: false,
-  },
-];
 
 const ITEMS_PER_PAGE = 12;
 
@@ -282,16 +112,30 @@ export function CategoryPage() {
     setSearchParams(params);
   }, [sortBy, selectedSubcategory, currentPage, setSearchParams]);
 
-  // Filter and sort products
-  const filteredProducts = useMemo(() => {
-    let products = [...mockProducts];
-
-    // Filter by subcategory if selected
-    if (selectedSubcategory) {
-      products = products.filter((p) => p.categoryId === selectedSubcategory);
+  // Get the category ID for API call
+  const categoryIdForApi = useMemo(() => {
+    if (selectedSubcategory && parentCategory?.children) {
+      const subcat = parentCategory.children.find((c: Category) => c.slug === selectedSubcategory);
+      if (subcat) return subcat.id;
     }
+    return currentCategory?.id || '';
+  }, [selectedSubcategory, parentCategory, currentCategory]);
 
-    // Sort products
+  // Fetch products from API
+  const { 
+    data: productsData, 
+    isLoading: isLoadingProducts,
+  } = useProductsByCategory({
+    categoryId: categoryIdForApi,
+    page: currentPage,
+    limit: ITEMS_PER_PAGE,
+  });
+
+  // Client-side sorting (backend returns newest first by default)
+  const sortedProducts = useMemo(() => {
+    if (!productsData?.products) return [];
+    const products = [...productsData.products];
+
     switch (sortBy) {
       case 'ending-soon':
         products.sort(
@@ -309,22 +153,15 @@ export function CategoryPage() {
         break;
       case 'newest':
       default:
-        products.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        // Already sorted by newest from API
         break;
     }
 
     return products;
-  }, [selectedSubcategory, sortBy]);
+  }, [productsData?.products, sortBy]);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const totalPages = productsData?.totalPages || 1;
+  const totalProducts = productsData?.total || 0;
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -431,7 +268,7 @@ export function CategoryPage() {
                 transition={{ delay: 0.2 }}
                 className="text-muted-foreground mt-1"
               >
-                {filteredProducts.length} sản phẩm đang đấu giá
+                {totalProducts} sản phẩm đang đấu giá
               </motion.p>
             </div>
           </div>
@@ -488,12 +325,12 @@ export function CategoryPage() {
             <span className="text-muted-foreground">
               Hiển thị{' '}
               <strong className="text-foreground">
-                {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-                {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)}
+                {totalProducts > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-
+                {Math.min(currentPage * ITEMS_PER_PAGE, totalProducts)}
               </strong>{' '}
-              / {filteredProducts.length} sản phẩm
+              / {totalProducts} sản phẩm
             </span>
-            {filteredProducts.some((p) => p.isNew) && (
+            {sortedProducts.some((p) => p.isNew) && (
               <Badge className="gap-1 bg-gradient-to-r from-amber-500 to-orange-500 border-0">
                 <SparkleIcon size={12} weight="fill" />
                 Có sản phẩm mới
@@ -529,7 +366,18 @@ export function CategoryPage() {
         </motion.div>
 
         {/* Products Grid */}
-        {paginatedProducts.length === 0 ? (
+        {isLoadingProducts ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className="aspect-square w-full rounded-lg" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-6 w-full" />
+              </div>
+            ))}
+          </div>
+        ) : sortedProducts.length === 0 ? (
           <Card className="py-16">
             <CardContent className="text-center">
               <FunnelIcon size={48} className="mx-auto text-muted-foreground mb-4" />
@@ -551,7 +399,7 @@ export function CategoryPage() {
               transition={{ duration: 0.3 }}
               className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
             >
-              {paginatedProducts.map((product, index) => (
+              {sortedProducts.map((product, index) => (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, y: 20 }}
