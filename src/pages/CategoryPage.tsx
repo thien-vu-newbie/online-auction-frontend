@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -61,56 +61,78 @@ const ITEMS_PER_PAGE = 12;
 export function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { categories } = useAppSelector((state) => state.categories);
+  const navigate = useNavigate();
+  const { categories, loading: categoriesLoading } = useAppSelector((state) => state.categories);
 
   // State
   const [sortBy, setSortBy] = useState<SortOption>(
     (searchParams.get('sort') as SortOption) || 'newest'
   );
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(
-    searchParams.get('sub') || null
-  );
   const [currentPage, setCurrentPage] = useState(
     parseInt(searchParams.get('page') || '1', 10)
   );
 
-  // Find current category
-  const currentCategory = useMemo(() => {
+  // Find current category and determine if it's a child
+  const { currentCategory, parentCategory, isChildCategory } = useMemo(() => {
     // Check if slug is a parent category
     const parent = categories.find((cat: Category) => cat.slug === slug);
-    if (parent) return parent;
+    if (parent) {
+      return { currentCategory: parent, parentCategory: parent, isChildCategory: false };
+    }
 
     // Check if slug is a subcategory
     for (const cat of categories) {
       const child = cat.children?.find((c: Category) => c.slug === slug);
       if (child) {
-        return { ...child, parent: cat };
+        return { 
+          currentCategory: { ...child, parent: cat }, 
+          parentCategory: cat, 
+          isChildCategory: true 
+        };
       }
     }
-    return null;
+    return { currentCategory: null, parentCategory: null, isChildCategory: false };
   }, [categories, slug]);
 
-  const parentCategory = useMemo(() => {
-    if (!currentCategory) return null;
-    if ('parent' in currentCategory) {
-      return (currentCategory as Category & { parent: Category }).parent;
+  // Derive selected subcategory from URL - either from slug (if child) or from sub param
+  const selectedSubcategory = useMemo(() => {
+    if (isChildCategory) {
+      return slug || null;
     }
-    return currentCategory;
-  }, [currentCategory]);
+    return searchParams.get('sub') || null;
+  }, [isChildCategory, slug, searchParams]);
+
+  // Handler to change subcategory (updates URL)
+  const handleSubcategoryChange = (subSlug: string | null) => {
+    if (subSlug === null) {
+      // "Tất cả" selected - navigate to parent category
+      if (parentCategory) {
+        const params = new URLSearchParams();
+        if (sortBy !== 'newest') params.set('sort', sortBy);
+        const paramStr = params.toString();
+        navigate(`/category/${parentCategory.slug}${paramStr ? '?' + paramStr : ''}`);
+      }
+    } else {
+      // Subcategory selected - navigate to child category slug
+      const params = new URLSearchParams();
+      if (sortBy !== 'newest') params.set('sort', sortBy);
+      const paramStr = params.toString();
+      navigate(`/category/${subSlug}${paramStr ? '?' + paramStr : ''}`);
+    }
+  };
 
   // Scroll to top on page change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [slug, currentPage]);
 
-  // Update URL params
+  // Update URL params (only for sort and page, subcategory is managed via slug)
   useEffect(() => {
     const params = new URLSearchParams();
     if (sortBy !== 'newest') params.set('sort', sortBy);
-    if (selectedSubcategory) params.set('sub', selectedSubcategory);
     if (currentPage > 1) params.set('page', currentPage.toString());
-    setSearchParams(params);
-  }, [sortBy, selectedSubcategory, currentPage, setSearchParams]);
+    setSearchParams(params, { replace: true });
+  }, [sortBy, currentPage, setSearchParams]);
 
   // Get the category ID for API call
   const categoryIdForApi = useMemo(() => {
@@ -179,6 +201,28 @@ export function CategoryPage() {
   const categorySlug = parentCategory?.slug || 'dien-tu';
   const iconColor = categoryIconColors[categorySlug] || 'text-primary';
   const icon = categoryIcons[categorySlug] || <HandbagIcon size={48} weight="duotone" />;
+
+  // Show loading state while categories are being fetched
+  if (categoriesLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
+        <div className="container mx-auto px-4 pt-24 pb-10">
+          <Skeleton className="h-8 w-48 mb-6" />
+          <Skeleton className="h-12 w-96 mb-4" />
+          <Skeleton className="h-6 w-64 mb-8" />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className="aspect-square w-full rounded-lg" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!currentCategory) {
     return (
@@ -284,10 +328,7 @@ export function CategoryPage() {
               <Button
                 variant={selectedSubcategory === null ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  setSelectedSubcategory(null);
-                  setCurrentPage(1);
-                }}
+                onClick={() => handleSubcategoryChange(null)}
                 className="rounded-full cursor-pointer"
               >
                 Tất cả
@@ -297,10 +338,7 @@ export function CategoryPage() {
                   key={child.id}
                   variant={selectedSubcategory === child.slug ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => {
-                    setSelectedSubcategory(child.slug);
-                    setCurrentPage(1);
-                  }}
+                  onClick={() => handleSubcategoryChange(child.slug)}
                   className="rounded-full cursor-pointer"
                 >
                   {child.name}

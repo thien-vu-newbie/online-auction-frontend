@@ -37,7 +37,7 @@ import { cn } from '@/lib/utils';
 
 export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
-  const { categories } = useAppSelector((state) => state.categories);
+  const { categories, loading: categoriesLoading } = useAppSelector((state) => state.categories);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const logoutMutation = useLogout();
 
@@ -131,7 +131,15 @@ export function Header() {
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="grid gap-3 p-6 w-[500px] grid-cols-2">
-                    {categories.map((category) => (
+                    {categoriesLoading ? (
+                      <div className="col-span-2 text-center py-4 text-muted-foreground">
+                        Đang tải danh mục...
+                      </div>
+                    ) : categories.length === 0 ? (
+                      <div className="col-span-2 text-center py-4 text-muted-foreground">
+                        Không có danh mục
+                      </div>
+                    ) : categories.map((category) => (
                       <div key={category.id} className="space-y-2">
                         <NavigationMenuLink asChild>
                           <Link

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   DeviceMobileIcon,
   WatchIcon,
@@ -34,7 +35,7 @@ const categoryIconColors: Record<string, string> = {
 };
 
 export function CategoryShowcase() {
-  const { categories } = useAppSelector((state) => state.categories);
+  const { categories, loading } = useAppSelector((state) => state.categories);
 
   return (
     <section className="py-12">
@@ -51,7 +52,23 @@ export function CategoryShowcase() {
 
         {/* Categories grid - using grid with auto-rows for equal heights */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 auto-rows-fr">
-          {categories.map((category: Category) => (
+          {loading ? (
+            // Loading skeletons
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="overflow-hidden">
+                <CardContent className="p-6">
+                  <Skeleton className="w-14 h-14 rounded-xl mb-4" />
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-1/2 mb-4" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : categories.map((category: Category) => (
             <Link key={category.id} to={`/category/${category.slug}`} className="h-full">
               <Card className={cn(
                 "group cursor-pointer overflow-hidden transition-all duration-300 h-full",
