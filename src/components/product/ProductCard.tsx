@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   HeartIcon,
+  HeartStraightIcon,
   ClockIcon,
   GavelIcon,
   TagIcon,
@@ -15,6 +16,8 @@ import {
 import type { Product } from '@/types';
 import { formatCurrency, getRelativeTime, isEndingSoon } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
+import { useCheckWatchlist, useAddToWatchlist, useRemoveFromWatchlist } from '@/hooks/useWatchlist';
+import { useAppSelector } from '@/store/hooks';
 
 interface ProductCardProps {
   product: Product;
@@ -23,8 +26,14 @@ interface ProductCardProps {
 
 export function ProductCard({ product, className }: ProductCardProps) {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const endingSoon = isEndingSoon(product.endTime);
   const hasEnded = new Date(product.endTime) < new Date();
+
+  // Watchlist hooks
+  const { data: isInWatchlist } = useCheckWatchlist(product.id);
+  const addToWatchlist = useAddToWatchlist();
+  const removeFromWatchlist = useRemoveFromWatchlist();
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Prevent navigation if clicking on interactive elements
@@ -34,6 +43,22 @@ export function ProductCard({ product, className }: ProductCardProps) {
     }
     navigate(`/product/${product.id}`);
   };
+
+  const handleWatchlistToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    if (isInWatchlist) {
+      removeFromWatchlist.mutate(product.id);
+    } else {
+      addToWatchlist.mutate(product.id);
+    }
+  };
+
   const isHomePage = window.location.pathname === '/';
 
   return (
@@ -84,13 +109,21 @@ export function ProductCard({ product, className }: ProductCardProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-2 right-2 bg-white/90 hover:bg-white hover:text-destructive shadow-md opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                onClick={handleWatchlistToggle}
+                className={cn(
+                  "absolute top-2 right-2 bg-white/90 hover:bg-white shadow-md opacity-0 group-hover:opacity-100 transition-all cursor-pointer",
+                  isInWatchlist ? "text-destructive hover:text-destructive" : "hover:text-destructive"
+                )}
               >
-                <HeartIcon size={18} />
+                {isInWatchlist ? (
+                  <HeartStraightIcon size={18} weight="fill" />
+                ) : (
+                  <HeartIcon size={18} />
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Thêm vào yêu thích</p>
+              <p>{isInWatchlist ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
