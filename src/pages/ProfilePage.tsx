@@ -25,21 +25,30 @@ import {
 } from '@phosphor-icons/react';
 import { useUserProfile, useUpdateProfile, useChangePassword, useRequestSellerUpgrade } from '@/hooks/useUsers';
 import { useMyReceivedRatings } from '@/hooks/useRatings';
-import { useMyParticipatingProducts, useMyWonProducts } from '@/hooks/useUsers';
+import { useMyParticipatingProducts, useMyRejectedProducts, useMyWonProducts } from '@/hooks/useUsers';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import { useMyProducts } from '@/hooks/useSeller';
 import { ProductCard } from '@/components/product/ProductCard';
+import { CreateProductDialog } from '@/components/seller/CreateProductDialog';
 import { formatDate } from '@/lib/formatters';
 
 export function ProfilePage() {
   const { data: profile, isLoading: profileLoading } = useUserProfile();
   const { data: ratingsData, isLoading: ratingsLoading } = useMyReceivedRatings(1, 10);
   const { data: participatingProducts, isLoading: participatingLoading } = useMyParticipatingProducts();
+  const { data: rejectedProducts, isLoading: rejectedLoading } = useMyRejectedProducts();
   const { data: wonProducts, isLoading: wonLoading } = useMyWonProducts();
   const { data: watchlistData, isLoading: watchlistLoading } = useWatchlist(1, 20);
+  
+  const isSeller = profile?.role === 'seller';
+  const { data: myProducts, isLoading: myProductsLoading } = useMyProducts(1, 12, 'active');
+  const { data: soldProducts, isLoading: soldProductsLoading } = useMyProducts(1, 12, 'sold');
 
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
   const requestSellerUpgrade = useRequestSellerUpgrade();
+  
+  const [createProductDialogOpen, setCreateProductDialogOpen] = useState(false);
 
   const [editMode, setEditMode] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -133,12 +142,19 @@ export function ProfilePage() {
           </div>
 
           <Tabs defaultValue="info" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className={`grid w-full ${isSeller ? 'grid-cols-9' : 'grid-cols-7'}`}>
               <TabsTrigger value="info">Thông tin</TabsTrigger>
               <TabsTrigger value="ratings">Đánh giá</TabsTrigger>
               <TabsTrigger value="participating">Đang tham gia</TabsTrigger>
+              <TabsTrigger value="rejected">Bị từ chối</TabsTrigger>
               <TabsTrigger value="won">Đã thắng</TabsTrigger>
               <TabsTrigger value="watchlist">Yêu thích</TabsTrigger>
+              {isSeller && (
+                <>
+                  <TabsTrigger value="my-products">Sản phẩm</TabsTrigger>
+                  <TabsTrigger value="sold">Đã bán</TabsTrigger>
+                </>
+              )}
               <TabsTrigger value="security">Bảo mật</TabsTrigger>
             </TabsList>
 
@@ -396,6 +412,36 @@ export function ProfilePage() {
               </Card>
             </TabsContent>
 
+            {/* Bị từ chối */}
+            <TabsContent value="rejected">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sản phẩm bị từ chối</CardTitle>
+                  <CardDescription>Các sản phẩm bạn bị seller từ chối</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {rejectedLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <Skeleton className="h-64" />
+                      <Skeleton className="h-64" />
+                      <Skeleton className="h-64" />
+                    </div>
+                  ) : rejectedProducts && rejectedProducts.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {rejectedProducts.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <GavelIcon size={48} className="mx-auto text-muted-foreground/50 mb-4" />
+                      <p className="text-muted-foreground">Bạn chưa bị từ chối ở sản phẩm nào</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             {/* Đã thắng */}
             <TabsContent value="won">
               <Card>
@@ -455,6 +501,84 @@ export function ProfilePage() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* Sản phẩm của tôi (Seller) */}
+            {isSeller && (
+              <TabsContent value="my-products">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Sản phẩm của tôi</CardTitle>
+                        <CardDescription>Quản lý các sản phẩm đang đăng bán</CardDescription>
+                      </div>
+                      <Button onClick={() => setCreateProductDialogOpen(true)} className="gap-2">
+                        <StorefrontIcon size={18} />
+                        Đăng sản phẩm mới
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {myProductsLoading ? (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <Skeleton className="h-64" />
+                        <Skeleton className="h-64" />
+                        <Skeleton className="h-64" />
+                      </div>
+                    ) : myProducts && myProducts.products.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {myProducts.products.map((product) => (
+                          <ProductCard key={product.id} product={product} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <StorefrontIcon size={48} className="mx-auto text-muted-foreground/50 mb-4" />
+                        <p className="text-muted-foreground">Bạn chưa đăng sản phẩm nào</p>
+                        <Button
+                          className="mt-4"
+                          onClick={() => setCreateProductDialogOpen(true)}
+                        >
+                          Đăng sản phẩm đầu tiên
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
+
+            {/* Đã bán (Seller) */}
+            {isSeller && (
+              <TabsContent value="sold">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Sản phẩm đã bán</CardTitle>
+                    <CardDescription>Các sản phẩm đã có người thắng đấu giá</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {soldProductsLoading ? (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <Skeleton className="h-64" />
+                        <Skeleton className="h-64" />
+                        <Skeleton className="h-64" />
+                      </div>
+                    ) : soldProducts && soldProducts.products.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {soldProducts.products.map((product) => (
+                          <ProductCard key={product.id} product={product} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <TrophyIcon size={48} className="mx-auto text-muted-foreground/50 mb-4" />
+                        <p className="text-muted-foreground">Chưa có sản phẩm nào được bán</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
             {/* Bảo mật */}
             <TabsContent value="security">
@@ -531,6 +655,14 @@ export function ProfilePage() {
           </Tabs>
         </motion.div>
       </div>
+
+      {/* Seller Dialogs */}
+      {isSeller && (
+        <CreateProductDialog
+          open={createProductDialogOpen}
+          onOpenChange={setCreateProductDialogOpen}
+        />
+      )}
     </div>
   );
 }

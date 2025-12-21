@@ -9,6 +9,11 @@ export interface Product {
   imageUrl: string;
   images: string[];
   description: string;
+  descriptionHistory?: Array<{
+    _id: string;
+    content: string;
+    addedAt: string;
+  }>;
   categoryId: string;
   categoryName: string;
   categorySlug: string;
@@ -24,6 +29,8 @@ export interface Product {
   createdAt: string;
   isNew?: boolean;
   autoExtend: boolean;
+  isRejected?: boolean;
+  isWinning?: boolean;
 }
 
 // Category Types

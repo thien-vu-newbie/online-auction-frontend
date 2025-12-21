@@ -6,3 +6,4 @@ export * from './bids';
 export * from './comments';
 export * from './ratings';
 export * from './users';
+export * from './seller';

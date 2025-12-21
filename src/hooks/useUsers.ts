@@ -17,6 +17,13 @@ export const useMyParticipatingProducts = () => {
   });
 };
 
+export const useMyRejectedProducts = () => {
+  return useQuery({
+    queryKey: ['users', 'rejected'],
+    queryFn: () => usersApi.getMyRejectedProducts(),
+  });
+};
+
 export const useMyWonProducts = () => {
   return useQuery({
     queryKey: ['users', 'won'],

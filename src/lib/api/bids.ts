@@ -1,24 +1,34 @@
 import { apiClient } from './client';
 
 export interface BidHistoryItem {
-  _id: string;
+  bidTime: string;
+  bidderName: string;
+  bidAmount: number;
+}
+
+export interface BidHistoryResponse {
   productId: string;
-  bidderId: {
-    _id: string;
-    fullName: string;
-  };
+  productName: string;
+  currentPrice: number;
+  bidCount: number;
+  history: BidHistoryItem[];
+}
+
+export interface SellerBidHistoryItem {
+  _id: string;
+  bidderId: string;
+  bidderName: string;
   bidAmount: number;
   bidTime: string;
   isRejected: boolean;
 }
 
-export interface BidHistoryResponse {
-  bids: BidHistoryItem[];
-  product: {
-    _id: string;
-    name: string;
-    currentPrice: number;
-  };
+export interface SellerBidHistoryResponse {
+  productId: string;
+  productName: string;
+  currentPrice: number;
+  bidCount: number;
+  bids: SellerBidHistoryItem[];
 }
 
 export interface PlaceAutoBidRequest {
@@ -43,6 +53,13 @@ export const bidsApi = {
   async getBidHistory(productId: string) {
     const response = await apiClient.get<BidHistoryResponse>(
       `/bids/products/${productId}/history`
+    );
+    return response.data;
+  },
+
+  async getSellerBidHistory(productId: string) {
+    const response = await apiClient.get<SellerBidHistoryResponse>(
+      `/bids/products/${productId}/seller-history`
     );
     return response.data;
   },
