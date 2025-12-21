@@ -40,15 +40,16 @@ import {
   ListBulletsIcon,
   ArrowsClockwiseIcon,
   WarningCircleIcon,
+  RobotIcon,
 } from '@phosphor-icons/react';
 import { ProductImageGallery } from '@/components/product/ProductImageGallery';
 import { BidHistory } from '@/components/product/BidHistory';
 import { ProductQA } from '@/components/product/ProductQA';
 import { ProductCard } from '@/components/product/ProductCard';
-import { BidInput } from '@/components/product/BidInput';
+import { AutoBidDialog } from '@/components/product/AutoBidDialog';
 import { useAppSelector } from '@/store/hooks';
 import { useProductDetail } from '@/hooks/useProducts';
-import type { Bid, Question } from '@/types';
+import { useCheckWatchlist, useAddToWatchlist, useRemoveFromWatchlist } from '@/hooks/useWatchlist';
 import {
   formatCurrency,
   formatDate,
@@ -56,10 +57,6 @@ import {
   isEndingSoon,
 } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
-
-// TODO: Replace with API calls when bids/questions endpoints are ready
-const mockBids: Bid[] = [];
-const mockQuestions: Question[] = [];
 
 export function ProductDetailPage() {
   const { id: productId } = useParams<{ id: string }>();
@@ -70,17 +67,19 @@ export function ProductDetailPage() {
   
   const product = data?.product;
   const relatedProducts = data?.relatedProducts || [];
-  
-  // TODO: Fetch from separate endpoints when available
-  const bids = mockBids;
-  const questions = mockQuestions;
+
+  // Watchlist hooks
+  const { data: isInWatchlist, isLoading: watchlistLoading } = useCheckWatchlist(productId);
+  const addToWatchlist = useAddToWatchlist();
+  const removeFromWatchlist = useRemoveFromWatchlist();
+
+  // Auto-bid dialog state
+  const [autoBidDialogOpen, setAutoBidDialogOpen] = useState(false);
 
   // Scroll to top when page loads
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [productId]);
-  
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
 
   // Loading state
   if (isLoading) {
@@ -134,19 +133,18 @@ export function ProductDetailPage() {
   const hasEnded = endDate < now;
   const isWithin3Days = diffDays <= 3;
 
-  const handleBid = (amount: number) => {
-    // TODO: Implement bid logic
-    console.log('Placing bid:', amount);
-  };
-
   const handleBuyNow = () => {
-    // TODO: Implement buy now logic
     console.log('Buy now');
   };
 
   const toggleWatchlist = () => {
-    setIsInWatchlist(!isInWatchlist);
-    // TODO: Implement watchlist toggle
+    if (!productId) return;
+    
+    if (isInWatchlist) {
+      removeFromWatchlist.mutate(productId);
+    } else {
+      addToWatchlist.mutate(productId);
+    }
   };
 
   return (
@@ -328,15 +326,21 @@ export function ProductDetailPage() {
             </Card>
 
             {/* Bid Actions */}
-            {!hasEnded && !isSeller && (
+            {!hasEnded && !isSeller && isAuthenticated && (
               <Card>
                 <CardContent className="p-6 space-y-4">
-                  {/* Bid Input */}
-                  <BidInput
-                    suggestedBid={suggestedBid}
-                    bidStep={product.bidStep}
-                    onBid={handleBid}
-                  />
+                  {/* Auto-bid Button */}
+                  <Button
+                    onClick={() => setAutoBidDialogOpen(true)}
+                    className="w-full gap-2 h-12 cursor-pointer"
+                    size="lg"
+                  >
+                    <RobotIcon size={20} weight="fill" />
+                    Đặt Auto Bid
+                  </Button>
+                  <p className="text-xs text-center text-muted-foreground">
+                    Hệ thống tự động đấu giá giúp bạn với giá tối ưu
+                  </p>
 
                   {/* Buy Now Button */}
                   {product.buyNowPrice && (
@@ -355,6 +359,7 @@ export function ProductDetailPage() {
                   )}
 
                   {/* Watchlist Button */}
+                  <Separator />
                   <Button
                     onClick={toggleWatchlist}
                     variant="ghost"
@@ -374,6 +379,19 @@ export function ProductDetailPage() {
                         Thêm vào danh sách yêu thích
                       </>
                     )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {!isAuthenticated && !hasEnded && !isSeller && (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground mb-4">
+                    Vui lòng đăng nhập để tham gia đấu giá
+                  </p>
+                  <Button asChild className="w-full">
+                    <Link to="/login">Đăng nhập</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -447,11 +465,11 @@ export function ProductDetailPage() {
               </TabsTrigger>
               <TabsTrigger value="history" className="gap-2 data-[state=active]:bg-background cursor-pointer">
                 <ListBulletsIcon size={18} />
-                Lịch sử đấu giá ({bids.length})
+                Lịch sử đấu giá
               </TabsTrigger>
               <TabsTrigger value="qa" className="gap-2 data-[state=active]:bg-background cursor-pointer">
                 <ChatCircleDotsIcon size={18} />
-                Hỏi đáp ({questions.length})
+                Hỏi đáp
               </TabsTrigger>
             </TabsList>
 
@@ -474,7 +492,7 @@ export function ProductDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <BidHistory bids={bids} currentUserId={user?.id} />
+                  <BidHistory productId={productId!} currentUserId={user?.id} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -489,11 +507,9 @@ export function ProductDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <ProductQA
-                    questions={questions}
+                    productId={productId!}
                     isAuthenticated={isAuthenticated}
                     isSeller={isSeller}
-                    onAskQuestion={(q) => console.log('Ask:', q)}
-                    onAnswerQuestion={(qId, a) => console.log('Answer:', qId, a)}
                   />
                 </CardContent>
               </Card>
@@ -531,6 +547,18 @@ export function ProductDetailPage() {
           </div>
         </motion.section>
       </div>
+
+      {/* Auto-bid Dialog */}
+      {productId && !hasEnded && (
+        <AutoBidDialog
+          open={autoBidDialogOpen}
+          onOpenChange={setAutoBidDialogOpen}
+          productId={productId}
+          currentPrice={product.currentPrice}
+          stepPrice={product.bidStep}
+          suggestedBid={suggestedBid}
+        />
+      )}
     </div>
   );
 }

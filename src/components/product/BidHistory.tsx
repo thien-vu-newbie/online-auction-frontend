@@ -9,16 +9,41 @@ import {
 } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { GavelIcon, TrophyIcon } from '@phosphor-icons/react';
-import type { Bid } from '@/types';
-import { formatCurrency, formatDate, maskName } from '@/lib/formatters';
+import { useBidHistory } from '@/hooks/useBids';
+import { formatCurrency, formatDate } from '@/lib/formatters';
 
 interface BidHistoryProps {
-  bids: Bid[];
+  productId: string;
   currentUserId?: string;
 }
 
-export function BidHistory({ bids, currentUserId }: BidHistoryProps) {
+function maskName(fullName: string): string {
+  if (!fullName) return '****';
+  const parts = fullName.trim().split(' ');
+  if (parts.length === 1) {
+    return `****${fullName.slice(-4)}`;
+  }
+  const lastName = parts[parts.length - 1];
+  return `****${lastName}`;
+}
+
+export function BidHistory({ productId, currentUserId }: BidHistoryProps) {
+  const { data, isLoading } = useBidHistory(productId);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
+
+  const bids = data?.bids || [];
+
   if (bids.length === 0) {
     return (
       <div className="text-center py-12">
@@ -44,11 +69,13 @@ export function BidHistory({ bids, currentUserId }: BidHistoryProps) {
         <TableBody>
           {bids.map((bid, index) => {
             const isHighest = index === 0;
-            const isCurrentUser = bid.bidderId === currentUserId;
+            const bidderId = typeof bid.bidderId === 'string' ? bid.bidderId : bid.bidderId._id;
+            const bidderName = typeof bid.bidderId === 'string' ? 'Unknown' : bid.bidderId.fullName;
+            const isCurrentUser = bidderId === currentUserId;
 
             return (
               <motion.tr
-                key={bid.id}
+                key={bid._id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
@@ -58,7 +85,7 @@ export function BidHistory({ bids, currentUserId }: BidHistoryProps) {
                 `}
               >
                 <TableCell className="font-mono text-sm text-muted-foreground">
-                  {formatDate(bid.createdAt)}
+                  {formatDate(bid.bidTime)}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
@@ -70,7 +97,7 @@ export function BidHistory({ bids, currentUserId }: BidHistoryProps) {
                       />
                     )}
                     <span className={isHighest ? 'font-semibold' : ''}>
-                      {maskName(bid.bidderName)}
+                      {maskName(bidderName)}
                     </span>
                     {isCurrentUser && (
                       <Badge variant="secondary" className="text-xs">
@@ -85,7 +112,7 @@ export function BidHistory({ bids, currentUserId }: BidHistoryProps) {
                       isHighest ? 'text-primary text-lg' : ''
                     }`}
                   >
-                    {formatCurrency(bid.amount)}
+                    {formatCurrency(bid.bidAmount)}
                   </span>
                 </TableCell>
               </motion.tr>
