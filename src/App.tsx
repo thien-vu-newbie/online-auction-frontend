@@ -8,6 +8,12 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { DashboardPage } from './pages/admin/DashboardPage';
+import { CategoryManagementPage } from './pages/admin/CategoryManagementPage';
+import { UserManagementPage } from './pages/admin/UserManagementPage';
+import { SellerUpgradeRequestsPage } from './pages/admin/SellerUpgradeRequestsPage';
+import { ProductManagementPage } from './pages/admin/ProductManagementPage';
 import { Toaster } from '@/components/ui/sonner';
 import { useAppDispatch } from '@/store/hooks';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
@@ -28,6 +34,48 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
+        {/* Admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requireAdmin>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute requireAdmin>
+              <UserManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/categories"
+          element={
+            <ProtectedRoute requireAdmin>
+              <CategoryManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/products"
+          element={
+            <ProtectedRoute requireAdmin>
+              <ProductManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/seller-requests"
+          element={
+            <ProtectedRoute requireAdmin>
+              <SellerUpgradeRequestsPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Main app routes - with MainLayout */}
         <Route
           path="/*"
@@ -38,10 +86,6 @@ function App() {
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
-                {/* Future routes will be added here */}
-                {/* <Route path="/products" element={<ProductListPage />} /> */}
-                {/* <Route path="/search" element={<SearchPage />} /> */}
-                {/* <Route path="/admin/*" element={<AdminRoutes />} /> */}
               </Routes>
             </MainLayout>
           }
