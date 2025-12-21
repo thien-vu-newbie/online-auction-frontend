@@ -47,6 +47,8 @@ import { BidHistory } from '@/components/product/BidHistory';
 import { ProductQA } from '@/components/product/ProductQA';
 import { ProductCard } from '@/components/product/ProductCard';
 import { AutoBidDialog } from '@/components/product/AutoBidDialog';
+import { DescriptionHistory } from '@/components/seller/DescriptionHistory';
+import { AddDescriptionDialog } from '@/components/seller/AddDescriptionDialog';
 import { useAppSelector } from '@/store/hooks';
 import { useProductDetail } from '@/hooks/useProducts';
 import { useCheckWatchlist, useAddToWatchlist, useRemoveFromWatchlist } from '@/hooks/useWatchlist';
@@ -75,6 +77,7 @@ export function ProductDetailPage() {
 
   // Auto-bid dialog state
   const [autoBidDialogOpen, setAutoBidDialogOpen] = useState(false);
+  const [addDescriptionDialogOpen, setAddDescriptionDialogOpen] = useState(false);
 
   // Scroll to top when page loads
   useEffect(() => {
@@ -149,7 +152,7 @@ export function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
-      <div className="container mx-auto px-4 py-6 space-y-8">
+      <div className="container mx-auto px-4 pt-20 pb-10 space-y-8">
         {/* Breadcrumb */}
         <Breadcrumb>
           <BreadcrumbList>
@@ -474,13 +477,24 @@ export function ProductDetailPage() {
             </TabsList>
 
             <TabsContent value="description" className="mt-6">
-              <Card>
-                <CardContent className="p-6 prose prose-sm max-w-none dark:prose-invert">
-                  <div
-                    dangerouslySetInnerHTML={{ __html: product.description }}
-                  />
-                </CardContent>
-              </Card>
+              <div className="space-y-4">
+                {isSeller && !hasEnded && (
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={() => setAddDescriptionDialogOpen(true)}
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      <InfoIcon size={18} />
+                      Bổ sung mô tả
+                    </Button>
+                  </div>
+                )}
+                <DescriptionHistory
+                  history={product.descriptionHistory || []}
+                  currentDescription={product.description}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="history" className="mt-6">
@@ -492,7 +506,11 @@ export function ProductDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <BidHistory productId={productId!} currentUserId={user?.id} />
+                  <BidHistory 
+                    productId={productId!}
+                    isSeller={isSeller}
+                    hasEnded={hasEnded}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -557,6 +575,16 @@ export function ProductDetailPage() {
           currentPrice={product.currentPrice}
           stepPrice={product.bidStep}
           suggestedBid={suggestedBid}
+        />
+      )}
+
+      {/* Add Description Dialog */}
+      {productId && isSeller && (
+        <AddDescriptionDialog
+          open={addDescriptionDialogOpen}
+          onOpenChange={setAddDescriptionDialogOpen}
+          productId={productId}
+          productName={product.name}
         />
       )}
     </div>

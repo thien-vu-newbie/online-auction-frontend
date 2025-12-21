@@ -72,13 +72,18 @@ export const usersApi = {
   },
 
   async getMyParticipatingProducts() {
-    const response = await apiClient.get<BackendProduct[]>('/users/my-participating-products');
-    return response.data.map(transformProduct);
+    const response = await apiClient.get<{ total: number; products: any[] }>('/users/my-participating-products');
+    return response.data.products.map(transformProduct);
+  },
+
+  async getMyRejectedProducts() {
+    const response = await apiClient.get<{ total: number; products: any[] }>('/users/my-rejected-products');
+    return response.data.products.map(transformProduct);
   },
 
   async getMyWonProducts() {
-    const response = await apiClient.get<BackendProduct[]>('/users/my-won-products');
-    return response.data.map(transformProduct);
+    const response = await apiClient.get<{ total: number; products: any[] }>('/users/my-won-products');
+    return response.data.products.map(transformProduct);
   },
 
   async getMyProducts(page: number = 1, limit: number = 10, status?: string) {

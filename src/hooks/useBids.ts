@@ -11,6 +11,14 @@ export const useBidHistory = (productId: string | undefined) => {
   });
 };
 
+export const useSellerBidHistory = (productId: string | undefined, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: ['bids', 'seller-history', productId],
+    queryFn: () => bidsApi.getSellerBidHistory(productId!),
+    enabled: !!productId && enabled,
+  });
+};
+
 export const useAutoBidConfig = (productId: string | undefined) => {
   return useQuery({
     queryKey: ['bids', 'auto-bid', productId],

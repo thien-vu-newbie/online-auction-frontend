@@ -12,6 +12,7 @@ import {
   FireIcon,
   SparkleIcon,
   UserIcon,
+  WarningIcon,
 } from '@phosphor-icons/react';
 import type { Product } from '@/types';
 import { formatCurrency, getRelativeTime, isEndingSoon } from '@/lib/formatters';
@@ -82,16 +83,22 @@ export function ProductCard({ product, className }: ProductCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
         {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+        <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
           {product.isNew && (
-            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 border-0 gap-1">
-              <SparkleIcon size={12} weight="fill" />
-              Mới đăng
+            <Badge className="bg-primary/90 backdrop-blur-sm gap-1 shadow-lg">
+              <SparkleIcon size={14} weight="fill" />
+              Mới
             </Badge>
           )}
-          {endingSoon && !hasEnded && (
-            <Badge variant="destructive" className="gap-1 animate-pulse">
-              <FireIcon size={12} weight="fill" />
+          {product.isRejected && (
+            <Badge variant="destructive" className="backdrop-blur-sm gap-1 shadow-lg">
+              <WarningIcon size={14} weight="fill" />
+              Bị từ chối
+            </Badge>
+          )}
+          {endingSoon && !hasEnded && !product.isRejected && (
+            <Badge variant="destructive" className="backdrop-blur-sm gap-1 shadow-lg animate-pulse">
+              <FireIcon size={14} weight="fill" />
               Sắp kết thúc
             </Badge>
           )}
