@@ -187,7 +187,7 @@ export function ProductQA({
                     </div>
                   ) : isSeller ? (
                     // Answer form for seller
-                    <div className="ml-8">
+                    <div className="ml-12">
                       {answeringId === q._id ? (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
@@ -223,7 +223,7 @@ export function ProductQA({
                           variant="outline"
                           size="sm"
                           onClick={() => setAnsweringId(q._id)}
-                          className="gap-2"
+                          className="gap-2 ml-4"
                         >
                           <PaperPlaneRightIcon size={16} />
                           Trả lời câu hỏi này
@@ -232,7 +232,7 @@ export function ProductQA({
                     </div>
                   ) : (
                     // Waiting for answer badge
-                    <div className="ml-8 flex items-center gap-2 text-muted-foreground text-sm">
+                    <div className="ml-12 flex items-center gap-2 text-muted-foreground text-sm">
                       <ClockIcon size={16} />
                       <span>Đang chờ người bán trả lời</span>
                     </div>
