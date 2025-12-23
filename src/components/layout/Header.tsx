@@ -30,6 +30,7 @@ import {
   CaretDownIcon,
   BellIcon,
   SignOutIcon,
+  ShieldCheckIcon,
 } from '@phosphor-icons/react';
 import { useAppSelector } from '@/store/hooks';
 import { useLogout } from '@/hooks/useAuth';
@@ -222,6 +223,17 @@ export function Header() {
                     <DropdownMenuItem asChild>
                       <Link to="/won-auctions">Đã thắng</Link>
                     </DropdownMenuItem>
+                    {user?.role === 'admin' && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/users" className="text-primary font-medium">
+                            <ShieldCheckIcon size={16} weight="fill" className="mr-2" />
+                            Admin Panel
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       className="text-destructive cursor-pointer"
