@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -63,6 +64,7 @@ import { cn } from '@/lib/utils';
 export function ProductDetailPage() {
   const { id: productId } = useParams<{ id: string }>();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const navigate = useNavigate();
   
   // Fetch product data from API
   const { data, isLoading, error } = useProductDetail(productId);
@@ -78,11 +80,13 @@ export function ProductDetailPage() {
   // Auto-bid dialog state
   const [autoBidDialogOpen, setAutoBidDialogOpen] = useState(false);
   const [addDescriptionDialogOpen, setAddDescriptionDialogOpen] = useState(false);
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
   // Scroll to top when page loads
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [productId]);
+
 
   // Loading state
   if (isLoading) {
@@ -147,6 +151,57 @@ export function ProductDetailPage() {
       removeFromWatchlist.mutate(productId);
     } else {
       addToWatchlist.mutate(productId);
+    }
+  };
+
+  const handleBuyerCompleteOrder = async () => {
+    console.log('🔵 BUYER handler called - checking for existing order');
+    if (!productId) return;
+    
+    setIsCreatingOrder(true);
+    try {
+      const { ordersApi } = await import('@/lib/api/orders');
+      
+      // First, check if order already exists
+      const ordersResponse = await ordersApi.getMyOrders({ role: 'buyer' });
+      const existingOrder = ordersResponse.orders.find(o => o.productId._id === productId);
+      
+      if (existingOrder) {
+        // Order exists, navigate to it
+        console.log('✅ Existing order found, navigating:', existingOrder._id);
+        navigate(`/orders/${existingOrder._id}`);
+      } else {
+        // No order yet, create payment intent (this creates the order)
+        console.log('➕ No order found, creating payment intent');
+        const response = await ordersApi.createPaymentIntent(productId);
+        navigate(`/orders/${response.orderId}`);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Không thể tải đơn hàng');
+      setIsCreatingOrder(false);
+    }
+  };
+
+  const handleSellerViewOrder = async () => {
+    console.log('🟢 SELLER handler called - finding existing order');
+    if (!productId) return;
+    
+    setIsCreatingOrder(true);
+    try {
+      // Seller: Find existing order
+      const { ordersApi } = await import('@/lib/api/orders');
+      const response = await ordersApi.getMyOrders({ role: 'seller' });
+      const order = response.orders.find(o => o.productId._id === productId);
+      
+      if (order) {
+        navigate(`/orders/${order._id}`);
+      } else {
+        toast.error('Chưa có đơn hàng cho sản phẩm này');
+        setIsCreatingOrder(false);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Không thể tải đơn hàng');
+      setIsCreatingOrder(false);
     }
   };
 
@@ -327,6 +382,65 @@ export function ProductDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Winner Action - Complete Order */}
+            {hasEnded && isAuthenticated && product.highestBidderId === user?.id && !isSeller && (() => {
+              console.log('✅ Rendering WINNER button');
+              return true;
+            })() && (
+              <Card className="border-primary">
+                <CardContent className="p-6 space-y-4">
+                  <div className="text-center space-y-3">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-2">
+                      <GavelIcon size={32} weight="fill" className="text-primary" />
+                    </div>
+                    <h3 className="text-xl font-bold">Chúc mừng! Bạn đã thắng đấu giá</h3>
+                    <p className="text-muted-foreground">
+                      Vui lòng hoàn tất thanh toán và theo dõi đơn hàng
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleBuyerCompleteOrder}
+                    className="w-full gap-2 h-12"
+                    size="lg"
+                    disabled={isCreatingOrder}
+                  >
+                    <ShoppingCartSimpleIcon size={20} />
+                    {isCreatingOrder ? 'Đang tải...' : 'Xem đơn hàng'}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Seller Action - View Order */}
+            {hasEnded && isAuthenticated && isSeller && product.highestBidderId && (() => {
+              console.log('✅ Rendering SELLER button');
+              return true;
+            })() && (
+              <Card className="border-primary">
+                <CardContent className="p-6 space-y-4">
+                  <div className="text-center space-y-3">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-2">
+                      <ShieldCheckIcon size={32} weight="fill" className="text-primary" />
+                    </div>
+                    <h3 className="text-xl font-bold">Đấu giá đã kết thúc</h3>
+                    <p className="text-muted-foreground">
+                      Người thắng: <strong>{product.highestBidderName}</strong>
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleSellerViewOrder}
+                    variant="outline"
+                    className="w-full gap-2 h-12"
+                    disabled={isCreatingOrder}
+                    size="lg"
+                  >
+                    <InfoIcon size={20} />
+                    {isCreatingOrder ? 'Đang tải...' : 'Xem chi tiết đơn hàng'}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Bid Actions */}
             {!hasEnded && !isSeller && isAuthenticated && (

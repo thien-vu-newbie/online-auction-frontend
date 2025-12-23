@@ -14,6 +14,7 @@ import { CategoryManagementPage } from './pages/admin/CategoryManagementPage';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { SellerUpgradeRequestsPage } from './pages/admin/SellerUpgradeRequestsPage';
 import { ProductManagementPage } from './pages/admin/ProductManagementPage';
+import { OrderCompletionPage } from './pages/OrderCompletionPage';
 import { Toaster } from '@/components/ui/sonner';
 import { useAppDispatch } from '@/store/hooks';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
@@ -72,6 +73,16 @@ function App() {
           element={
             <ProtectedRoute requireAdmin>
               <SellerUpgradeRequestsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Order Completion Route */}
+        <Route
+          path="/orders/:orderId"
+          element={
+            <ProtectedRoute>
+              <OrderCompletionPage />
             </ProtectedRoute>
           }
         />
