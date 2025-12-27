@@ -14,6 +14,7 @@ import { CategoryManagementPage } from './pages/admin/CategoryManagementPage';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { SellerUpgradeRequestsPage } from './pages/admin/SellerUpgradeRequestsPage';
 import { ProductManagementPage } from './pages/admin/ProductManagementPage';
+import { OrderCompletionPage } from './pages/OrderCompletionPage';
 import { Toaster } from '@/components/ui/sonner';
 import { useAppDispatch } from '@/store/hooks';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
@@ -76,6 +77,16 @@ function App() {
           }
         />
 
+        {/* Order Completion Route */}
+        <Route
+          path="/orders/:orderId"
+          element={
+            <ProtectedRoute>
+              <OrderCompletionPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Main app routes - with MainLayout */}
         <Route
           path="/*"
@@ -85,7 +96,14 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  } 
+                />
               </Routes>
             </MainLayout>
           }
