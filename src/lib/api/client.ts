@@ -114,8 +114,9 @@ apiClient.interceptors.response.use(
       const refreshToken = tokenStorage.getRefreshToken();
 
       if (!refreshToken) {
+        // Guest user or token expired - just clear tokens but don't force redirect
+        // Let the component handle the auth state (e.g., show login button)
         tokenStorage.clearTokens();
-        window.location.href = '/login';
         return Promise.reject(error);
       }
 
@@ -136,7 +137,8 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError as AxiosError, null);
         tokenStorage.clearTokens();
-        window.location.href = '/login';
+        // Don't force redirect - let the user continue as guest
+        // Components can check auth state and show login prompts if needed
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

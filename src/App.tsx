@@ -96,7 +96,14 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  } 
+                />
               </Routes>
             </MainLayout>
           }

@@ -29,6 +29,7 @@ import { ShippingConfirmationStep } from '@/components/order/ShippingConfirmatio
 import { ReceivedConfirmationStep } from '@/components/order/ReceivedConfirmationStep';
 import { RatingStep } from '@/components/order/RatingStep';
 import { CancelOrderDialog } from '@/components/order/CancelOrderDialog';
+import { OrderChat } from '@/components/chat/OrderChat';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
@@ -130,7 +131,7 @@ export function OrderCompletionPage() {
 
   return (
     <MainLayout>
-      <div className="container max-w-6xl mx-auto pt-20 pb-10 space-y-6">
+      <div className="container max-w-7xl mx-auto pt-20 pb-10 space-y-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -250,23 +251,27 @@ export function OrderCompletionPage() {
 
         <Separator />
 
-        {/* Action Steps */}
-        {order.status === 'cancelled' ? (
-          <Card>
-            <CardContent className="pt-6 text-center py-12">
-              <XCircleIcon size={64} className="mx-auto text-muted-foreground/50 mb-4" />
-              <p className="text-muted-foreground">
-                Đơn hàng này đã bị hủy. Không thể tiếp tục giao dịch.
-              </p>
-              <Button className="mt-4" onClick={() => navigate('/')}>
-                Về trang chủ
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            {/* Step 1: Payment */}
-            {order.status === 'pending_payment' && isBuyer && (
+        {/* Two Column Layout: Order Process + Chat */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column: Order Process (2/3 width) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Action Steps */}
+            {order.status === 'cancelled' ? (
+              <Card>
+                <CardContent className="pt-6 text-center py-12">
+                  <XCircleIcon size={64} className="mx-auto text-muted-foreground/50 mb-4" />
+                  <p className="text-muted-foreground">
+                    Đơn hàng này đã bị hủy. Không thể tiếp tục giao dịch.
+                  </p>
+                  <Button className="mt-4" onClick={() => navigate('/')}>
+                    Về trang chủ
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {/* Step 1: Payment */}
+                {order.status === 'pending_payment' && isBuyer && (
               clientSecret ? (
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
                   <PaymentStep order={order} />
@@ -390,21 +395,30 @@ export function OrderCompletionPage() {
               </Card>
             )}
 
-            {/* Step 5: Rating */}
-            {order.status === 'completed' && (
-              <RatingStep order={order} isBuyer={isBuyer} isSeller={isSeller} />
+                {/* Step 5: Rating */}
+                {order.status === 'completed' && (
+                  <RatingStep order={order} isBuyer={isBuyer} isSeller={isSeller} />
+                )}
+              </>
             )}
-          </>
-        )}
 
-        {/* Cancel Order Dialog */}
-        {isSeller && (
-          <CancelOrderDialog
-            open={showCancelDialog}
-            onOpenChange={setShowCancelDialog}
-            orderId={order._id}
-          />
-        )}
+            {/* Cancel Order Dialog */}
+            {isSeller && (
+              <CancelOrderDialog
+                open={showCancelDialog}
+                onOpenChange={setShowCancelDialog}
+                orderId={order._id}
+              />
+            )}
+          </div>
+
+          {/* Right Column: Chat (1/3 width) */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <OrderChat order={order} isBuyer={isBuyer} />
+            </div>
+          </div>
+        </div>
       </div>
     </MainLayout>
   );
