@@ -5,6 +5,7 @@ import { HomePage } from '@/pages/HomePage';
 import { ProductDetailPage } from '@/pages/ProductDetailPage';
 import { CategoryPage } from '@/pages/CategoryPage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { SearchPage } from '@/pages/SearchPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
@@ -18,6 +19,7 @@ import { OrderCompletionPage } from './pages/OrderCompletionPage';
 import { Toaster } from '@/components/ui/sonner';
 import { useAppDispatch } from '@/store/hooks';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
+import { WatchlistProvider } from '@/contexts/WatchlistContext';
 
 function App() {
   const dispatch = useAppDispatch();
@@ -28,7 +30,8 @@ function App() {
   }, [dispatch]);
 
   return (
-    <Router>
+    <WatchlistProvider>
+      <Router>
       <Routes>
         {/* Auth routes - without MainLayout */}
         <Route path="/login" element={<LoginPage />} />
@@ -94,6 +97,7 @@ function App() {
             <MainLayout>
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/search" element={<SearchPage />} />
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
                 <Route 
@@ -111,6 +115,7 @@ function App() {
       </Routes>
       <Toaster position="top-right" richColors />
     </Router>
+    </WatchlistProvider>
   );
 }
 
