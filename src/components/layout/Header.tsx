@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -38,9 +38,17 @@ import { cn } from '@/lib/utils';
 
 export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
   const { categories, loading: categoriesLoading } = useAppSelector((state) => state.categories);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const logoutMutation = useLogout();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-md">
@@ -106,21 +114,21 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Search bar */}
-          <div className="flex-1 max-w-xl hidden md:block">
-            <div className="relative group">
-              <MagnifyingGlassIcon 
-                size={20} 
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" 
+          {/* Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-xl">
+            <form onSubmit={handleSearch} className="relative w-full">
+              <MagnifyingGlassIcon
+                size={20}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
               />
               <Input
                 type="search"
-                placeholder="Tìm kiếm sản phẩm đấu giá..."
+                placeholder="Tìm kiếm sản phẩm (hỗ trợ tiếng Việt không dấu)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 h-10 bg-muted/50 border-transparent focus:border-primary focus:bg-background transition-all"
               />
-            </div>
+            </form>
           </div>
 
           {/* Desktop Navigation */}

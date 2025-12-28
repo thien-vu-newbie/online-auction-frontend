@@ -17,7 +17,7 @@ import {
 import type { Product } from '@/types';
 import { formatCurrency, getRelativeTime, isEndingSoon } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
-import { useCheckWatchlist, useAddToWatchlist, useRemoveFromWatchlist } from '@/hooks/useWatchlist';
+import { useWatchlistCheck, useWatchlistContext } from '@/contexts/WatchlistContext';
 import { useAppSelector } from '@/store/hooks';
 
 interface ProductCardProps {
@@ -31,10 +31,9 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const endingSoon = isEndingSoon(product.endTime);
   const hasEnded = new Date(product.endTime) < new Date();
 
-  // Watchlist hooks
-  const { data: isInWatchlist } = useCheckWatchlist(product.id);
-  const addToWatchlist = useAddToWatchlist();
-  const removeFromWatchlist = useRemoveFromWatchlist();
+  // Optimized watchlist check - no individual API calls
+  const isInWatchlist = useWatchlistCheck(product.id);
+  const watchlistContext = useWatchlistContext();
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Prevent navigation if clicking on interactive elements
@@ -45,18 +44,18 @@ export function ProductCard({ product, className }: ProductCardProps) {
     navigate(`/product/${product.id}`);
   };
 
-  const handleWatchlistToggle = (e: React.MouseEvent) => {
+  const handleWatchlistToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !watchlistContext) {
       navigate('/login');
       return;
     }
 
     if (isInWatchlist) {
-      removeFromWatchlist.mutate(product.id);
+      await watchlistContext.removeFromWatchlist(product.id);
     } else {
-      addToWatchlist.mutate(product.id);
+      await watchlistContext.addToWatchlist(product.id);
     }
   };
 
