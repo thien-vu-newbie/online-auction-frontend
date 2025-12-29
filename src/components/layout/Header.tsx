@@ -31,6 +31,7 @@ import {
   BellIcon,
   SignOutIcon,
   ShieldCheckIcon,
+  StorefrontIcon,
 } from '@phosphor-icons/react';
 import { useAppSelector } from '@/store/hooks';
 import { useLogout } from '@/hooks/useAuth';
@@ -231,6 +232,17 @@ export function Header() {
                     <DropdownMenuItem asChild>
                       <Link to="/won-auctions">Đã thắng</Link>
                     </DropdownMenuItem>
+                    {user?.role === 'seller' && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link to="/post-product" className="text-primary font-medium">
+                            <StorefrontIcon size={16} weight="fill" className="mr-2" />
+                            Đăng sản phẩm
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     {user?.role === 'admin' && (
                       <>
                         <DropdownMenuSeparator />
