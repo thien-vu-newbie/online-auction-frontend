@@ -71,19 +71,40 @@ export const usersApi = {
     return response.data;
   },
 
-  async getMyParticipatingProducts() {
-    const response = await apiClient.get<{ total: number; products: any[] }>('/users/my-participating-products');
-    return response.data.products.map(transformProduct);
+  async getMyParticipatingProducts(page: number = 1, limit: number = 12) {
+    const response = await apiClient.get<{ products: any[]; total: number; page: number; totalPages: number }>('/users/my-participating-products', {
+      params: { page, limit },
+    });
+    return {
+      products: response.data.products.map(transformProduct),
+      total: response.data.total,
+      page: response.data.page,
+      totalPages: response.data.totalPages,
+    };
   },
 
-  async getMyRejectedProducts() {
-    const response = await apiClient.get<{ total: number; products: any[] }>('/users/my-rejected-products');
-    return response.data.products.map(transformProduct);
+  async getMyRejectedProducts(page: number = 1, limit: number = 12) {
+    const response = await apiClient.get<{ products: any[]; total: number; page: number; totalPages: number }>('/users/my-rejected-products', {
+      params: { page, limit },
+    });
+    return {
+      products: response.data.products.map(transformProduct),
+      total: response.data.total,
+      page: response.data.page,
+      totalPages: response.data.totalPages,
+    };
   },
 
-  async getMyWonProducts() {
-    const response = await apiClient.get<{ total: number; products: any[] }>('/users/my-won-products');
-    return response.data.products.map(transformProduct);
+  async getMyWonProducts(page: number = 1, limit: number = 12) {
+    const response = await apiClient.get<{ products: any[]; total: number; page: number; totalPages: number }>('/users/my-won-products', {
+      params: { page, limit },
+    });
+    return {
+      products: response.data.products.map(transformProduct),
+      total: response.data.total,
+      page: response.data.page,
+      totalPages: response.data.totalPages,
+    };
   },
 
   async getMyProducts(page: number = 1, limit: number = 10, status?: string) {

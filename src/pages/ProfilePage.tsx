@@ -35,14 +35,23 @@ import { formatDate } from '@/lib/formatters';
 export function ProfilePage() {
   const { data: profile, isLoading: profileLoading } = useUserProfile();
   const { data: ratingsData, isLoading: ratingsLoading } = useMyReceivedRatings(1, 10);
-  const { data: participatingProducts, isLoading: participatingLoading } = useMyParticipatingProducts();
-  const { data: rejectedProducts, isLoading: rejectedLoading } = useMyRejectedProducts();
-  const { data: wonProducts, isLoading: wonLoading } = useMyWonProducts();
-  const { data: watchlistData, isLoading: watchlistLoading } = useWatchlist(1, 20);
+  
+  // Pagination states
+  const [participatingPage, setParticipatingPage] = useState(1);
+  const [rejectedPage, setRejectedPage] = useState(1);
+  const [wonPage, setWonPage] = useState(1);
+  const [watchlistPage, setWatchlistPage] = useState(1);
+  const [myProductsPage, setMyProductsPage] = useState(1);
+  const [soldProductsPage, setSoldProductsPage] = useState(1);
+  
+  const { data: participatingProducts, isLoading: participatingLoading } = useMyParticipatingProducts(participatingPage, 12);
+  const { data: rejectedProducts, isLoading: rejectedLoading } = useMyRejectedProducts(rejectedPage, 12);
+  const { data: wonProducts, isLoading: wonLoading } = useMyWonProducts(wonPage, 12);
+  const { data: watchlistData, isLoading: watchlistLoading } = useWatchlist(watchlistPage, 12);
   
   const isSeller = profile?.role === 'seller';
-  const { data: myProducts, isLoading: myProductsLoading } = useMyProducts(1, 12, 'active');
-  const { data: soldProducts, isLoading: soldProductsLoading } = useMyProducts(1, 12, 'sold');
+  const { data: myProducts, isLoading: myProductsLoading } = useMyProducts(myProductsPage, 12, 'active');
+  const { data: soldProducts, isLoading: soldProductsLoading } = useMyProducts(soldProductsPage, 12, 'sold');
 
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
@@ -295,7 +304,7 @@ export function ProfilePage() {
                             </div>
                             <div>
                               <p className="text-sm text-muted-foreground">Đã thắng</p>
-                              <p className="font-semibold">{wonProducts?.length || 0} sản phẩm</p>
+                              <p className="font-semibold">{wonProducts?.total || 0} sản phẩm</p>
                             </div>
                           </div>
                         </CardContent>
@@ -303,17 +312,25 @@ export function ProfilePage() {
                     </div>
                   </div>
 
-                  {profile.role === 'bidder' && !profile.isRequestingSellerUpgrade && (
+                  {/* Hiển thị cho bidder hoặc seller hết hạn */}
+                  {((profile.role === 'bidder') || 
+                    (profile.role === 'seller' && profile.sellerUpgradeExpiry && new Date(profile.sellerUpgradeExpiry) < new Date())) && 
+                   !profile.isRequestingSellerUpgrade && (
                     <>
                       <Separator />
                       <div className="space-y-3">
-                        <h3 className="text-lg font-semibold">Nâng cấp lên Seller</h3>
+                        <h3 className="text-lg font-semibold">
+                          {profile.role === 'bidder' ? 'Nâng cấp lên Seller' : 'Gia hạn quyền Seller'}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Bạn muốn bán sản phẩm trên sàn? Gửi yêu cầu nâng cấp lên seller (có hiệu lực trong 7 ngày sau khi được duyệt)
+                          {profile.role === 'bidder' 
+                            ? 'Bạn muốn bán sản phẩm trên sàn? Gửi yêu cầu nâng cấp lên seller (có hiệu lực trong 7 ngày sau khi được duyệt)'
+                            : 'Quyền seller của bạn đã hết hạn. Gửi yêu cầu gia hạn để tiếp tục bán sản phẩm (7 ngày kể từ khi được duyệt)'
+                          }
                         </p>
                         <Button onClick={handleRequestSellerUpgrade} disabled={requestSellerUpgrade.isPending} className="gap-2">
                           <StorefrontIcon size={18} />
-                          {requestSellerUpgrade.isPending ? 'Đang gửi...' : 'Yêu cầu nâng cấp Seller'}
+                          {requestSellerUpgrade.isPending ? 'Đang gửi...' : (profile.role === 'bidder' ? 'Yêu cầu nâng cấp Seller' : 'Yêu cầu gia hạn Seller')}
                         </Button>
                       </div>
                     </>
@@ -325,7 +342,9 @@ export function ProfilePage() {
                       <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg">
                         <div className="flex items-center gap-2">
                           <ArrowsClockwiseIcon size={20} className="text-amber-600" />
-                          <p className="font-medium text-amber-900 dark:text-amber-100">Yêu cầu đang chờ duyệt</p>
+                          <p className="font-medium text-amber-900 dark:text-amber-100">
+                            {profile.role === 'seller' ? 'Yêu cầu gia hạn đang chờ duyệt' : 'Yêu cầu đang chờ duyệt'}
+                          </p>
                         </div>
                         <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
                           Admin sẽ xem xét yêu cầu của bạn trong thời gian sớm nhất
@@ -396,12 +415,64 @@ export function ProfilePage() {
                       <Skeleton className="h-64" />
                       <Skeleton className="h-64" />
                     </div>
-                  ) : participatingProducts && participatingProducts.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {participatingProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
+                  ) : participatingProducts?.products && participatingProducts.products.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {participatingProducts.products.map((product) => (
+                          <ProductCard key={product.id} product={product} />
+                        ))}
+                      </div>
+                      
+                      {/* Pagination */}
+                      {participatingProducts.totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 mt-8">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setParticipatingPage((prev) => Math.max(1, prev - 1))}
+                            disabled={participatingPage === 1}
+                          >
+                            Trang trước
+                          </Button>
+
+                          <div className="flex gap-1">
+                            {Array.from({ length: Math.min(5, participatingProducts.totalPages) }, (_, i) => {
+                              let pageNum: number;
+                              if (participatingProducts.totalPages <= 5) {
+                                pageNum = i + 1;
+                              } else if (participatingPage <= 3) {
+                                pageNum = i + 1;
+                              } else if (participatingPage >= participatingProducts.totalPages - 2) {
+                                pageNum = participatingProducts.totalPages - 4 + i;
+                              } else {
+                                pageNum = participatingPage - 2 + i;
+                              }
+
+                              return (
+                                <Button
+                                  key={pageNum}
+                                  variant={participatingPage === pageNum ? 'default' : 'outline'}
+                                  size="sm"
+                                  onClick={() => setParticipatingPage(pageNum)}
+                                  className="min-w-[40px]"
+                                >
+                                  {pageNum}
+                                </Button>
+                              );
+                            })}
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setParticipatingPage((prev) => Math.min(participatingProducts.totalPages, prev + 1))}
+                            disabled={participatingPage === participatingProducts.totalPages}
+                          >
+                            Trang sau
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="text-center py-12">
                       <GavelIcon size={48} className="mx-auto text-muted-foreground/50 mb-4" />
@@ -426,12 +497,64 @@ export function ProfilePage() {
                       <Skeleton className="h-64" />
                       <Skeleton className="h-64" />
                     </div>
-                  ) : rejectedProducts && rejectedProducts.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {rejectedProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
+                  ) : rejectedProducts?.products && rejectedProducts.products.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {rejectedProducts.products.map((product) => (
+                          <ProductCard key={product.id} product={product} />
+                        ))}
+                      </div>
+                      
+                      {/* Pagination */}
+                      {rejectedProducts.totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 mt-8">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setRejectedPage((prev) => Math.max(1, prev - 1))}
+                            disabled={rejectedPage === 1}
+                          >
+                            Trang trước
+                          </Button>
+
+                          <div className="flex gap-1">
+                            {Array.from({ length: Math.min(5, rejectedProducts.totalPages) }, (_, i) => {
+                              let pageNum: number;
+                              if (rejectedProducts.totalPages <= 5) {
+                                pageNum = i + 1;
+                              } else if (rejectedPage <= 3) {
+                                pageNum = i + 1;
+                              } else if (rejectedPage >= rejectedProducts.totalPages - 2) {
+                                pageNum = rejectedProducts.totalPages - 4 + i;
+                              } else {
+                                pageNum = rejectedPage - 2 + i;
+                              }
+
+                              return (
+                                <Button
+                                  key={pageNum}
+                                  variant={rejectedPage === pageNum ? 'default' : 'outline'}
+                                  size="sm"
+                                  onClick={() => setRejectedPage(pageNum)}
+                                  className="min-w-[40px]"
+                                >
+                                  {pageNum}
+                                </Button>
+                              );
+                            })}
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setRejectedPage((prev) => Math.min(rejectedProducts.totalPages, prev + 1))}
+                            disabled={rejectedPage === rejectedProducts.totalPages}
+                          >
+                            Trang sau
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="text-center py-12">
                       <GavelIcon size={48} className="mx-auto text-muted-foreground/50 mb-4" />
@@ -456,12 +579,64 @@ export function ProfilePage() {
                       <Skeleton className="h-64" />
                       <Skeleton className="h-64" />
                     </div>
-                  ) : wonProducts && wonProducts.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {wonProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
+                  ) : wonProducts?.products && wonProducts.products.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {wonProducts.products.map((product) => (
+                          <ProductCard key={product.id} product={product} />
+                        ))}
+                      </div>
+                      
+                      {/* Pagination */}
+                      {wonProducts.totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 mt-8">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setWonPage((prev) => Math.max(1, prev - 1))}
+                            disabled={wonPage === 1}
+                          >
+                            Trang trước
+                          </Button>
+
+                          <div className="flex gap-1">
+                            {Array.from({ length: Math.min(5, wonProducts.totalPages) }, (_, i) => {
+                              let pageNum: number;
+                              if (wonProducts.totalPages <= 5) {
+                                pageNum = i + 1;
+                              } else if (wonPage <= 3) {
+                                pageNum = i + 1;
+                              } else if (wonPage >= wonProducts.totalPages - 2) {
+                                pageNum = wonProducts.totalPages - 4 + i;
+                              } else {
+                                pageNum = wonPage - 2 + i;
+                              }
+
+                              return (
+                                <Button
+                                  key={pageNum}
+                                  variant={wonPage === pageNum ? 'default' : 'outline'}
+                                  size="sm"
+                                  onClick={() => setWonPage(pageNum)}
+                                  className="min-w-[40px]"
+                                >
+                                  {pageNum}
+                                </Button>
+                              );
+                            })}
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setWonPage((prev) => Math.min(wonProducts.totalPages, prev + 1))}
+                            disabled={wonPage === wonProducts.totalPages}
+                          >
+                            Trang sau
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="text-center py-12">
                       <TrophyIcon size={48} className="mx-auto text-muted-foreground/50 mb-4" />
@@ -487,11 +662,63 @@ export function ProfilePage() {
                       <Skeleton className="h-64" />
                     </div>
                   ) : watchlistData && watchlistData.products.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {watchlistData.products.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {watchlistData.products.map((product) => (
+                          <ProductCard key={product.id} product={product} />
+                        ))}
+                      </div>
+                      
+                      {/* Pagination */}
+                      {watchlistData.totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 mt-8">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setWatchlistPage((prev) => Math.max(1, prev - 1))}
+                            disabled={watchlistPage === 1}
+                          >
+                            Trang trước
+                          </Button>
+
+                          <div className="flex gap-1">
+                            {Array.from({ length: Math.min(5, watchlistData.totalPages) }, (_, i) => {
+                              let pageNum: number;
+                              if (watchlistData.totalPages <= 5) {
+                                pageNum = i + 1;
+                              } else if (watchlistPage <= 3) {
+                                pageNum = i + 1;
+                              } else if (watchlistPage >= watchlistData.totalPages - 2) {
+                                pageNum = watchlistData.totalPages - 4 + i;
+                              } else {
+                                pageNum = watchlistPage - 2 + i;
+                              }
+
+                              return (
+                                <Button
+                                  key={pageNum}
+                                  variant={watchlistPage === pageNum ? 'default' : 'outline'}
+                                  size="sm"
+                                  onClick={() => setWatchlistPage(pageNum)}
+                                  className="min-w-[40px]"
+                                >
+                                  {pageNum}
+                                </Button>
+                              );
+                            })}
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setWatchlistPage((prev) => Math.min(watchlistData.totalPages, prev + 1))}
+                            disabled={watchlistPage === watchlistData.totalPages}
+                          >
+                            Trang sau
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="text-center py-12">
                       <HeartIcon size={48} className="mx-auto text-muted-foreground/50 mb-4" />
@@ -526,11 +753,63 @@ export function ProfilePage() {
                         <Skeleton className="h-64" />
                       </div>
                     ) : myProducts && myProducts.products.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {myProducts.products.map((product) => (
-                          <ProductCard key={product.id} product={product} />
-                        ))}
-                      </div>
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {myProducts.products.map((product) => (
+                            <ProductCard key={product.id} product={product} />
+                          ))}
+                        </div>
+                        
+                        {/* Pagination */}
+                        {myProducts.totalPages > 1 && (
+                          <div className="flex items-center justify-center gap-2 mt-8">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setMyProductsPage((prev) => Math.max(1, prev - 1))}
+                              disabled={myProductsPage === 1}
+                            >
+                              Trang trước
+                            </Button>
+
+                            <div className="flex gap-1">
+                              {Array.from({ length: Math.min(5, myProducts.totalPages) }, (_, i) => {
+                                let pageNum: number;
+                                if (myProducts.totalPages <= 5) {
+                                  pageNum = i + 1;
+                                } else if (myProductsPage <= 3) {
+                                  pageNum = i + 1;
+                                } else if (myProductsPage >= myProducts.totalPages - 2) {
+                                  pageNum = myProducts.totalPages - 4 + i;
+                                } else {
+                                  pageNum = myProductsPage - 2 + i;
+                                }
+
+                                return (
+                                  <Button
+                                    key={pageNum}
+                                    variant={myProductsPage === pageNum ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => setMyProductsPage(pageNum)}
+                                    className="min-w-[40px]"
+                                  >
+                                    {pageNum}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setMyProductsPage((prev) => Math.min(myProducts.totalPages, prev + 1))}
+                              disabled={myProductsPage === myProducts.totalPages}
+                            >
+                              Trang sau
+                            </Button>
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div className="text-center py-12">
                         <StorefrontIcon size={48} className="mx-auto text-muted-foreground/50 mb-4" />
@@ -564,11 +843,63 @@ export function ProfilePage() {
                         <Skeleton className="h-64" />
                       </div>
                     ) : soldProducts && soldProducts.products.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {soldProducts.products.map((product) => (
-                          <ProductCard key={product.id} product={product} />
-                        ))}
-                      </div>
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {soldProducts.products.map((product) => (
+                            <ProductCard key={product.id} product={product} />
+                          ))}
+                        </div>
+                        
+                        {/* Pagination */}
+                        {soldProducts.totalPages > 1 && (
+                          <div className="flex items-center justify-center gap-2 mt-8">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSoldProductsPage((prev) => Math.max(1, prev - 1))}
+                              disabled={soldProductsPage === 1}
+                            >
+                              Trang trước
+                            </Button>
+
+                            <div className="flex gap-1">
+                              {Array.from({ length: Math.min(5, soldProducts.totalPages) }, (_, i) => {
+                                let pageNum: number;
+                                if (soldProducts.totalPages <= 5) {
+                                  pageNum = i + 1;
+                                } else if (soldProductsPage <= 3) {
+                                  pageNum = i + 1;
+                                } else if (soldProductsPage >= soldProducts.totalPages - 2) {
+                                  pageNum = soldProducts.totalPages - 4 + i;
+                                } else {
+                                  pageNum = soldProductsPage - 2 + i;
+                                }
+
+                                return (
+                                  <Button
+                                    key={pageNum}
+                                    variant={soldProductsPage === pageNum ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => setSoldProductsPage(pageNum)}
+                                    className="min-w-[40px]"
+                                  >
+                                    {pageNum}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSoldProductsPage((prev) => Math.min(soldProducts.totalPages, prev + 1))}
+                              disabled={soldProductsPage === soldProducts.totalPages}
+                            >
+                              Trang sau
+                            </Button>
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div className="text-center py-12">
                         <TrophyIcon size={48} className="mx-auto text-muted-foreground/50 mb-4" />

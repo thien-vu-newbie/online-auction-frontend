@@ -6,6 +6,8 @@ import { ProductDetailPage } from '@/pages/ProductDetailPage';
 import { CategoryPage } from '@/pages/CategoryPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { SearchPage } from '@/pages/SearchPage';
+import { ProductsListPage } from '@/pages/ProductsListPage';
+import { WatchlistPage } from '@/pages/WatchlistPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
@@ -98,8 +100,17 @@ function App() {
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/search" element={<SearchPage />} />
+                <Route path="/products" element={<ProductsListPage />} />
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
+                <Route 
+                  path="/watchlist" 
+                  element={
+                    <ProtectedRoute>
+                      <WatchlistPage />
+                    </ProtectedRoute>
+                  } 
+                />
                 <Route 
                   path="/profile" 
                   element={

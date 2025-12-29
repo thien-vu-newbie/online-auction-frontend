@@ -10,24 +10,24 @@ export const useUserProfile = () => {
   });
 };
 
-export const useMyParticipatingProducts = () => {
+export const useMyParticipatingProducts = (page: number = 1, limit: number = 12) => {
   return useQuery({
-    queryKey: ['users', 'participating'],
-    queryFn: () => usersApi.getMyParticipatingProducts(),
+    queryKey: ['users', 'participating', page, limit],
+    queryFn: () => usersApi.getMyParticipatingProducts(page, limit),
   });
 };
 
-export const useMyRejectedProducts = () => {
+export const useMyRejectedProducts = (page: number = 1, limit: number = 12) => {
   return useQuery({
-    queryKey: ['users', 'rejected'],
-    queryFn: () => usersApi.getMyRejectedProducts(),
+    queryKey: ['users', 'rejected', page, limit],
+    queryFn: () => usersApi.getMyRejectedProducts(page, limit),
   });
 };
 
-export const useMyWonProducts = () => {
+export const useMyWonProducts = (page: number = 1, limit: number = 12) => {
   return useQuery({
-    queryKey: ['users', 'won'],
-    queryFn: () => usersApi.getMyWonProducts(),
+    queryKey: ['users', 'won', page, limit],
+    queryFn: () => usersApi.getMyWonProducts(page, limit),
   });
 };
 

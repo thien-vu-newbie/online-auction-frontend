@@ -59,6 +59,7 @@ interface PaginatedResponse<T> {
   products: T[];
   total: number;
   page: number;
+  limit?: number;
   totalPages: number;
 }
 
@@ -160,30 +161,30 @@ const transformRelatedProduct = (product: BackendProductDetail['relatedProducts'
  * Get top products ending soon (for homepage)
  */
 export const getTopEndingSoon = async (limit: number = 5): Promise<Product[]> => {
-  const response = await apiClient.get<BackendProduct[]>('/products/homepage/top-ending-soon', {
+  const response = await apiClient.get<PaginatedResponse<BackendProduct>>('/products/homepage/top-ending-soon', {
     params: { limit },
   });
-  return response.data.map(transformProduct);
+  return response.data.products.map(transformProduct);
 };
 
 /**
  * Get top products with most bids (for homepage)
  */
 export const getTopMostBids = async (limit: number = 5): Promise<Product[]> => {
-  const response = await apiClient.get<BackendProduct[]>('/products/homepage/top-most-bids', {
+  const response = await apiClient.get<PaginatedResponse<BackendProduct>>('/products/homepage/top-most-bids', {
     params: { limit },
   });
-  return response.data.map(transformProduct);
+  return response.data.products.map(transformProduct);
 };
 
 /**
  * Get top products with highest price (for homepage)
  */
 export const getTopHighestPrice = async (limit: number = 5): Promise<Product[]> => {
-  const response = await apiClient.get<BackendProduct[]>('/products/homepage/top-highest-price', {
+  const response = await apiClient.get<PaginatedResponse<BackendProduct>>('/products/homepage/top-highest-price', {
     params: { limit },
   });
-  return response.data.map(transformProduct);
+  return response.data.products.map(transformProduct);
 };
 
 /**
@@ -284,6 +285,61 @@ export const searchProductsInCategory = async (
     `/products/category/${categoryId}/search`,
     { params }
   );
+
+  return {
+    products: response.data.products.map(transformProduct),
+    total: response.data.total,
+    page: response.data.page,
+    totalPages: response.data.totalPages,
+  };
+};
+
+/**
+ * Get top products with pagination (for "View All" pages)
+ */
+export const getTopEndingSoonPaginated = async (page: number = 1, limit: number = 12): Promise<CategoryProductsResponse> => {
+  const response = await apiClient.get<PaginatedResponse<BackendProduct>>('/products/homepage/top-ending-soon', {
+    params: { page, limit },
+  });
+
+  return {
+    products: response.data.products.map(transformProduct),
+    total: response.data.total,
+    page: response.data.page,
+    totalPages: response.data.totalPages,
+  };
+};
+
+export const getTopMostBidsPaginated = async (page: number = 1, limit: number = 12): Promise<CategoryProductsResponse> => {
+  const response = await apiClient.get<PaginatedResponse<BackendProduct>>('/products/homepage/top-most-bids', {
+    params: { page, limit },
+  });
+
+  return {
+    products: response.data.products.map(transformProduct),
+    total: response.data.total,
+    page: response.data.page,
+    totalPages: response.data.totalPages,
+  };
+};
+
+export const getTopHighestPricePaginated = async (page: number = 1, limit: number = 12): Promise<CategoryProductsResponse> => {
+  const response = await apiClient.get<PaginatedResponse<BackendProduct>>('/products/homepage/top-highest-price', {
+    params: { page, limit },
+  });
+
+  return {
+    products: response.data.products.map(transformProduct),
+    total: response.data.total,
+    page: response.data.page,
+    totalPages: response.data.totalPages,
+  };
+};
+
+export const getAllProductsPaginated = async (page: number = 1, limit: number = 12): Promise<CategoryProductsResponse> => {
+  const response = await apiClient.get<PaginatedResponse<BackendProduct>>('/products', {
+    params: { page, limit },
+  });
 
   return {
     products: response.data.products.map(transformProduct),
