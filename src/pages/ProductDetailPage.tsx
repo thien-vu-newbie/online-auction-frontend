@@ -216,7 +216,7 @@ export function ProductDetailPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/category/${product.categoryId}`}>
+              <BreadcrumbLink href={`/category/${product.categorySlug}`}>
                 {product.categoryName}
               </BreadcrumbLink>
             </BreadcrumbItem>
@@ -253,7 +253,7 @@ export function ProductDetailPage() {
             {/* Title & Badges */}
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2">
-                <Link to={`/category/${product.categoryId}`}>
+                <Link to={`/category/${product.categorySlug}`}>
                   <Badge variant="secondary" className="gap-1 hover:bg-secondary/80">
                     <TagIcon size={12} />
                     {product.categoryName}
@@ -659,7 +659,7 @@ export function ProductDetailPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Sản phẩm cùng danh mục</h2>
             <Link
-              to={`/category/${product.categoryId}`}
+              to={`/category/${product.categorySlug}`}
               className="text-primary hover:underline text-sm font-medium"
             >
               Xem tất cả →
