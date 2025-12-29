@@ -5,7 +5,6 @@ import { SortBy, type SortByType } from '@/lib/api/search';
 import { useAppSelector } from '@/store/hooks';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -48,7 +47,15 @@ export function SearchPage() {
     limit: 12,
   });
 
-  // Sync URL params with state
+  // Sync URL params with state and update from Header search
+  useEffect(() => {
+    const queryFromUrl = searchParams.get('q') || '';
+    if (queryFromUrl !== searchQuery) {
+      setSearchQuery(queryFromUrl);
+    }
+  }, [searchParams]);
+
+  // Sync state changes back to URL
   useEffect(() => {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
@@ -57,14 +64,6 @@ export function SearchPage() {
     if (page > 1) params.set('page', page.toString());
     setSearchParams(params, { replace: true });
   }, [searchQuery, selectedCategory, sortBy, page, setSearchParams]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const query = formData.get('search') as string;
-    setSearchQuery(query);
-    setPage(1);
-  };
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value === 'all' ? '' : value);
@@ -99,27 +98,7 @@ export function SearchPage() {
         {/* Search & Filters */}
         <Card className="mb-8">
           <CardContent className="pt-6">
-            <form onSubmit={handleSearch} className="space-y-4">
-              {/* Search Bar */}
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <MagnifyingGlassIcon
-                    size={20}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  />
-                  <Input
-                    name="search"
-                    placeholder="Tìm kiếm sản phẩm (hỗ trợ tiếng Việt không dấu)..."
-                    defaultValue={searchQuery}
-                    className="pl-10"
-                  />
-                </div>
-                <Button type="submit" size="lg">
-                  <MagnifyingGlassIcon size={20} weight="bold" />
-                  Tìm kiếm
-                </Button>
-              </div>
-
+            <div className="space-y-4">
               {/* Filters Row */}
               <div className="flex flex-wrap gap-4">
                 {/* Category Filter */}
@@ -170,7 +149,7 @@ export function SearchPage() {
                   </Select>
                 </div>
               </div>
-            </form>
+            </div>
 
             {/* Active Filters Summary */}
             {(searchQuery || selectedCategory) && (

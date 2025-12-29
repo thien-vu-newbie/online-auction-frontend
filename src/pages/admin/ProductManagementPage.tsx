@@ -37,7 +37,7 @@ export function ProductManagementPage() {
 
   const handleDelete = async () => {
     if (!selectedProduct) return;
-    await deleteProduct.mutateAsync(selectedProduct.id);
+    await deleteProduct.mutateAsync(selectedProduct._id);
     setDeleteDialogOpen(false);
     setSelectedProduct(null);
   };
