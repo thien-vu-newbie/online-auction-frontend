@@ -47,7 +47,7 @@ interface BackendProductDetail extends BackendProduct {
   relatedProducts: Array<{
     _id: string;
     name: string;
-    thumbnail: string;
+    images: string[];
     currentPrice: number;
     endTime: string;
     bidCount: number;
@@ -131,6 +131,9 @@ export const transformProduct = (backendProduct: BackendProduct): Product => {
 
 // Transform related product (minimal fields)
 const transformRelatedProduct = (product: BackendProductDetail['relatedProducts'][0]): Product => {
+  // Use first image from images array as thumbnail
+  const imageUrl = product.images && product.images.length > 0 ? product.images[0] : '';
+  
   return {
     id: product._id,
     name: product.name,
@@ -138,8 +141,8 @@ const transformRelatedProduct = (product: BackendProductDetail['relatedProducts'
     currentPrice: product.currentPrice,
     startPrice: product.currentPrice,
     bidStep: 0,
-    imageUrl: product.thumbnail,
-    images: [],
+    imageUrl: imageUrl,
+    images: product.images || [],
     categoryId: '',
     categoryName: '',
     categorySlug: '',
