@@ -6,6 +6,7 @@ import { ProductDetailPage } from '@/pages/ProductDetailPage';
 import { CategoryPage } from '@/pages/CategoryPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { SearchPage } from '@/pages/SearchPage';
+import { PostProductPage } from '@/pages/PostProductPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
@@ -105,6 +106,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <ProfilePage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/post-product" 
+                  element={
+                    <ProtectedRoute>
+                      <PostProductPage />
                     </ProtectedRoute>
                   } 
                 />
