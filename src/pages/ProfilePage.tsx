@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,10 +30,10 @@ import { useMyParticipatingProducts, useMyRejectedProducts, useMyWonProducts } f
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useMyProducts } from '@/hooks/useSeller';
 import { ProductCard } from '@/components/product/ProductCard';
-import { CreateProductDialog } from '@/components/seller/CreateProductDialog';
 import { formatDate } from '@/lib/formatters';
 
 export function ProfilePage() {
+  const navigate = useNavigate();
   const { data: profile, isLoading: profileLoading } = useUserProfile();
   const { data: ratingsData, isLoading: ratingsLoading } = useMyReceivedRatings(1, 10);
   
@@ -56,8 +57,6 @@ export function ProfilePage() {
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
   const requestSellerUpgrade = useRequestSellerUpgrade();
-  
-  const [createProductDialogOpen, setCreateProductDialogOpen] = useState(false);
 
   const [editMode, setEditMode] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -739,7 +738,7 @@ export function ProfilePage() {
                         <CardTitle>Sản phẩm của tôi</CardTitle>
                         <CardDescription>Quản lý các sản phẩm đang đăng bán</CardDescription>
                       </div>
-                      <Button onClick={() => setCreateProductDialogOpen(true)} className="gap-2">
+                      <Button onClick={() => navigate('/post-product')} className="gap-2">
                         <StorefrontIcon size={18} />
                         Đăng sản phẩm mới
                       </Button>
@@ -816,7 +815,7 @@ export function ProfilePage() {
                         <p className="text-muted-foreground">Bạn chưa đăng sản phẩm nào</p>
                         <Button
                           className="mt-4"
-                          onClick={() => setCreateProductDialogOpen(true)}
+                          onClick={() => navigate('/post-product')}
                         >
                           Đăng sản phẩm đầu tiên
                         </Button>
@@ -986,14 +985,6 @@ export function ProfilePage() {
           </Tabs>
         </motion.div>
       </div>
-
-      {/* Seller Dialogs */}
-      {isSeller && (
-        <CreateProductDialog
-          open={createProductDialogOpen}
-          onOpenChange={setCreateProductDialogOpen}
-        />
-      )}
     </div>
   );
 }

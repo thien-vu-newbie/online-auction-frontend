@@ -59,7 +59,6 @@ export function ProductCard({ product, className }: ProductCardProps) {
     }
   };
 
-  const showCategory = window.location.pathname === '/' || window.location.pathname.startsWith('/products');
 
   return (
     <Card 
@@ -147,7 +146,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
       <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
         {/* Category */}
-        {showCategory && (
+        {product.categoryName && (
           <Link 
             to={`/category/${product.categorySlug}`}
             onClick={(e) => e.stopPropagation()}

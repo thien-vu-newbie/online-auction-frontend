@@ -45,7 +45,7 @@ export function CategoryManagementPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
-  const [formData, setFormData] = useState({ name: '', parentId: '' });
+  const [formData, setFormData] = useState<{ name: string; parentId: string | undefined }>({ name: '', parentId: undefined });
 
   const handleCreate = async () => {
     if (!formData.name.trim()) return;
@@ -54,7 +54,7 @@ export function CategoryManagementPage() {
       parentId: formData.parentId || undefined,
     });
     setCreateDialogOpen(false);
-    setFormData({ name: '', parentId: '' });
+    setFormData({ name: '', parentId: undefined });
   };
 
   const handleEdit = async () => {
@@ -68,7 +68,7 @@ export function CategoryManagementPage() {
     });
     setEditDialogOpen(false);
     setSelectedCategory(null);
-    setFormData({ name: '', parentId: '' });
+    setFormData({ name: '', parentId: undefined });
   };
 
   const handleDelete = async () => {
@@ -82,7 +82,7 @@ export function CategoryManagementPage() {
     setSelectedCategory(category);
     setFormData({
       name: category.name,
-      parentId: category.parentId || '',
+      parentId: category.parentId || undefined,
     });
     setEditDialogOpen(true);
   };
@@ -206,7 +206,7 @@ export function CategoryManagementPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="name">Tên danh mục</Label>
+              <Label className='mb-2' htmlFor="name">Tên danh mục</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -215,16 +215,15 @@ export function CategoryManagementPage() {
               />
             </div>
             <div>
-              <Label htmlFor="parent">Danh mục cha (tùy chọn)</Label>
+              <Label className='mb-2' htmlFor="parent">Danh mục cha (tùy chọn)</Label>
               <Select
                 value={formData.parentId}
                 onValueChange={(value) => setFormData({ ...formData, parentId: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Chọn danh mục cha" />
+                  <SelectValue placeholder="Không có (Danh mục cấp 1)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Không có (Danh mục cấp 1)</SelectItem>
                   {categories?.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       {cat.name}
@@ -268,10 +267,9 @@ export function CategoryManagementPage() {
                 onValueChange={(value) => setFormData({ ...formData, parentId: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Chọn danh mục cha" />
+                  <SelectValue placeholder="Không có (Danh mục cấp 1)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Không có (Danh mục cấp 1)</SelectItem>
                   {categories
                     ?.filter((cat) => cat.id !== selectedCategory?.id)
                     .map((cat) => (

@@ -8,6 +8,7 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { SearchPage } from '@/pages/SearchPage';
 import { ProductsListPage } from '@/pages/ProductsListPage';
 import { WatchlistPage } from '@/pages/WatchlistPage';
+import { PostProductPage } from '@/pages/PostProductPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
@@ -116,6 +117,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <ProfilePage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/post-product" 
+                  element={
+                    <ProtectedRoute>
+                      <PostProductPage />
                     </ProtectedRoute>
                   } 
                 />

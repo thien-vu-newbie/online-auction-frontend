@@ -43,6 +43,17 @@ export const SortBy = {
 
 export type SortByType = typeof SortBy[keyof typeof SortBy];
 
+// Helper to generate slug from category name
+const generateSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
 export interface SearchParams {
   name?: string;
   categoryId?: string;
@@ -81,7 +92,7 @@ function transformProduct(backendProduct: BackendProduct): Product {
     images: backendProduct.images,
     categoryId: backendProduct.categoryId._id,
     categoryName: backendProduct.categoryId.name,
-    categorySlug: backendProduct.categoryId.slug,
+    categorySlug: generateSlug(backendProduct.categoryId.name),
     sellerId: backendProduct.sellerId._id,
     sellerName: backendProduct.sellerId.fullName,
     sellerRating: 0, // Not available in search response
