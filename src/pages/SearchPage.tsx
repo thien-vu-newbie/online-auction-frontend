@@ -5,6 +5,7 @@ import { SortBy, type SortByType } from '@/lib/api/search';
 import { useAppSelector } from '@/store/hooks';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Button } from '@/components/ui/button';
+import { CategorySelect } from '@/components/ui/category-select';
 import {
   Select,
   SelectContent,
@@ -47,11 +48,24 @@ export function SearchPage() {
     limit: 12,
   });
 
-  // Sync URL params with state and update from Header search
+  // Sync URL params with state - only update searchQuery from URL
   useEffect(() => {
     const queryFromUrl = searchParams.get('q') || '';
+    const categoryFromUrl = searchParams.get('category') || '';
+    const sortFromUrl = (searchParams.get('sort') as SortByType) || SortBy.CREATED_DESC;
+    const pageFromUrl = Number(searchParams.get('page')) || 1;
+    
     if (queryFromUrl !== searchQuery) {
       setSearchQuery(queryFromUrl);
+    }
+    if (categoryFromUrl !== selectedCategory) {
+      setSelectedCategory(categoryFromUrl);
+    }
+    if (sortFromUrl !== sortBy) {
+      setSortBy(sortFromUrl);
+    }
+    if (pageFromUrl !== page) {
+      setPage(pageFromUrl);
     }
   }, [searchParams]);
 
@@ -59,14 +73,18 @@ export function SearchPage() {
   useEffect(() => {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
-    if (selectedCategory) params.set('category', selectedCategory);
+    if (selectedCategory && selectedCategory !== 'all') params.set('category', selectedCategory);
     if (sortBy !== SortBy.CREATED_DESC) params.set('sort', sortBy);
     if (page > 1) params.set('page', page.toString());
     setSearchParams(params, { replace: true });
   }, [searchQuery, selectedCategory, sortBy, page, setSearchParams]);
 
   const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value === 'all' ? '' : value);
+    console.log('=== SearchPage handleCategoryChange ===');
+    console.log('value:', value);
+    const newValue = value === 'all' ? '' : value;
+    console.log('newValue:', newValue);
+    setSelectedCategory(newValue);
     setPage(1);
   };
 
@@ -97,26 +115,20 @@ export function SearchPage() {
 
         {/* Search & Filters */}
         <Card className="mb-8">
-          <CardContent className="pt-6">
+          <CardContent className="pt-1">
             <div className="space-y-4">
               {/* Filters Row */}
               <div className="flex flex-wrap gap-4">
                 {/* Category Filter */}
                 <div className="flex items-center gap-2 min-w-[200px]">
                   <FunnelIcon size={20} className="text-muted-foreground" />
-                  <Select value={selectedCategory || 'all'} onValueChange={handleCategoryChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tất cả danh mục" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả danh mục</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CategorySelect
+                    categories={categories}
+                    value={selectedCategory || 'all'}
+                    onValueChange={handleCategoryChange}
+                    placeholder="Tất cả danh mục"
+                    showAllOption={true}
+                  />
                 </div>
 
                 {/* Sort By */}

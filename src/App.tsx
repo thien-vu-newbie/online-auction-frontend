@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { HomePage } from '@/pages/HomePage';
 import { ProductDetailPage } from '@/pages/ProductDetailPage';
@@ -24,6 +24,16 @@ import { useAppDispatch } from '@/store/hooks';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
 import { WatchlistProvider } from '@/contexts/WatchlistContext';
 
+function ScrollToTop() {
+  const { pathname, search } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [pathname, search]);
+
+  return null;
+}
+
 function App() {
   const dispatch = useAppDispatch();
 
@@ -35,7 +45,8 @@ function App() {
   return (
     <WatchlistProvider>
       <Router>
-      <Routes>
+        <ScrollToTop />
+        <Routes>
         {/* Auth routes - without MainLayout */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
