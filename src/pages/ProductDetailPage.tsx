@@ -11,6 +11,16 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -51,7 +61,7 @@ import { AutoBidDialog } from '@/components/product/AutoBidDialog';
 import { DescriptionHistory } from '@/components/seller/DescriptionHistory';
 import { AddDescriptionDialog } from '@/components/seller/AddDescriptionDialog';
 import { useAppSelector } from '@/store/hooks';
-import { useProductDetail } from '@/hooks/useProducts';
+import { useProductDetail, useBuyNow } from '@/hooks/useProducts';
 import { useCheckWatchlist, useAddToWatchlist, useRemoveFromWatchlist } from '@/hooks/useWatchlist';
 import {
   formatCurrency,
@@ -77,9 +87,13 @@ export function ProductDetailPage() {
   const addToWatchlist = useAddToWatchlist();
   const removeFromWatchlist = useRemoveFromWatchlist();
 
+  // Buy now hook
+  const buyNow = useBuyNow();
+
   // Auto-bid dialog state
   const [autoBidDialogOpen, setAutoBidDialogOpen] = useState(false);
   const [addDescriptionDialogOpen, setAddDescriptionDialogOpen] = useState(false);
+  const [buyNowDialogOpen, setBuyNowDialogOpen] = useState(false);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
   // Scroll to top when page loads
@@ -141,7 +155,29 @@ export function ProductDetailPage() {
   const isWithin3Days = diffDays <= 3;
 
   const handleBuyNow = () => {
-    console.log('Buy now');
+    if (!productId) return;
+    
+    if (!isAuthenticated) {
+      toast.error('Vui lòng đăng nhập để mua sản phẩm');
+      navigate('/login');
+      return;
+    }
+
+    if (!product?.buyNowPrice) {
+      toast.error('Sản phẩm không có giá mua ngay');
+      return;
+    }
+
+    // Open confirm dialog
+    setBuyNowDialogOpen(true);
+  };
+
+  const confirmBuyNow = () => {
+    if (!productId) return;
+    buyNow.mutate(productId);
+    setBuyNowDialogOpen(false);
+    // Product detail will auto-reload via query invalidation
+    // User can then go to order page via the "Xem chi tiết đơn hàng" button
   };
 
   const toggleWatchlist = () => {
@@ -465,12 +501,13 @@ export function ProductDetailPage() {
                       <Separator />
                       <Button
                         onClick={handleBuyNow}
+                        disabled={buyNow.isPending}
                         variant="outline"
                         className="w-full gap-2 h-12 text-emerald-600 border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer"
                         size="lg"
                       >
                         <ShoppingCartSimpleIcon size={20} />
-                        Mua ngay với giá {formatCurrency(product.buyNowPrice)}
+                        {buyNow.isPending ? 'Đang xử lý...' : `Mua ngay với giá ${formatCurrency(product.buyNowPrice)}`}
                       </Button>
                     </>
                   )}
@@ -701,6 +738,47 @@ export function ProductDetailPage() {
           productName={product.name}
         />
       )}
+
+      {/* Buy Now Confirmation Dialog */}
+      <AlertDialog open={buyNowDialogOpen} onOpenChange={setBuyNowDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <ShoppingCartSimpleIcon size={24} className="text-emerald-600" />
+              Xác nhận mua sản phẩm
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-2">
+              <p className="text-base">
+                Bạn có chắc chắn muốn mua sản phẩm này không?
+              </p>
+              {product && (
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <p className="font-medium text-foreground">{product.name}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Giá mua ngay:</span>
+                    <span className="text-lg font-bold text-emerald-600">
+                      {formatCurrency(product.buyNowPrice || 0)}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Sau khi mua, bạn sẽ cần thanh toán trong vòng 24 giờ.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmBuyNow}
+              disabled={buyNow.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {buyNow.isPending ? 'Đang xử lý...' : 'Xác nhận mua'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,8 +34,20 @@ import { formatDate } from '@/lib/formatters';
 
 export function ProfilePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { data: profile, isLoading: profileLoading } = useUserProfile();
   const { data: ratingsData, isLoading: ratingsLoading } = useMyReceivedRatings(1, 10);
+  
+  // Get active tab from URL query param, default to 'info'
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'info');
+  
+  // Update activeTab when URL changes
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
   
   // Pagination states
   const [participatingPage, setParticipatingPage] = useState(1);
@@ -149,7 +161,7 @@ export function ProfilePage() {
             </Avatar>
           </div>
 
-          <Tabs defaultValue="info" className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className={`grid w-full ${isSeller ? 'grid-cols-9' : 'grid-cols-7'}`}>
               <TabsTrigger value="info">Thông tin</TabsTrigger>
               <TabsTrigger value="ratings">Đánh giá</TabsTrigger>

@@ -215,13 +215,13 @@ export function Header() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to="/profile">Hồ sơ cá nhân</Link>
+                      <Link to="/profile?tab=info">Hồ sơ cá nhân</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/my-bids">Đang đấu giá</Link>
+                      <Link to="/profile?tab=participating">Đang đấu giá</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/won-auctions">Đã thắng</Link>
+                      <Link to="/profile?tab=won">Đã thắng</Link>
                     </DropdownMenuItem>
                     {user?.role === 'seller' && (
                       <>
