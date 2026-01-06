@@ -13,9 +13,10 @@ import {
   SparkleIcon,
   UserIcon,
   WarningIcon,
+  CalendarIcon,
 } from '@phosphor-icons/react';
 import type { Product } from '@/types';
-import { formatCurrency, getRelativeTime, isEndingSoon } from '@/lib/formatters';
+import { formatCurrency, getRelativeTime, isEndingSoon, formatDateOnly } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { useWatchlistCheck, useWatchlistContext } from '@/contexts/WatchlistContext';
 import { useAppSelector } from '@/store/hooks';
@@ -132,6 +133,17 @@ export function ProductCard({ product, className }: ProductCardProps) {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+
+        {/* Start time badge - position varies based on product status */}
+        <div className={cn(
+          "absolute right-2 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0",
+          hasEnded ? "bottom-3" : "bottom-11"
+        )}>
+          <Badge className="bg-black/90 text-white backdrop-blur-sm gap-1.5 shadow-lg text-sm">
+            <CalendarIcon size={16} weight="fill" />
+            {formatDateOnly(product.startTime)}
+          </Badge>
+        </div>
 
         {/* Quick bid button */}
         {!hasEnded && (

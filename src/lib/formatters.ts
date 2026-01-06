@@ -79,6 +79,17 @@ export const formatDate = (dateString: string): string => {
 };
 
 /**
+ * Format date to Vietnamese locale (date only, no time)
+ */
+export const formatDateOnly = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString('vi-VN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+};
+
+/**
  * Mask bidder name (show last 4 characters)
  */
 export const maskName = (name: string): string => {
