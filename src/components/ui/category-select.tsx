@@ -46,19 +46,13 @@ export function CategorySelect({
   };
 
   const handleSelect = (categoryId: string) => {
-    console.log('=== handleSelect called ===');
-    console.log('categoryId:', categoryId);
-    console.log('isSelectingRef before:', isSelectingRef.current);
-    
     isSelectingRef.current = true;
     onValueChange(categoryId);
     setHoveredParent(null);
     
-    console.log('After onValueChange');
     
     // Close after a short delay
     setTimeout(() => {
-      console.log('setTimeout callback - closing popover');
       setOpen(false);
       isSelectingRef.current = false;
     }, 100);
@@ -95,21 +89,14 @@ export function CategorySelect({
 
   return (
     <>
-      <Popover modal={false} open={open} onOpenChange={(isOpen) => {
-        console.log('=== Popover onOpenChange ===');
-        console.log('isOpen:', isOpen);
-        console.log('isSelectingRef:', isSelectingRef.current);
-        console.log('hoveredParent:', hoveredParent);
-        
+      <Popover modal={false} open={open} onOpenChange={(isOpen) => {      
         // Don't close if we're selecting or if submenu is open
         // But always allow opening
         if (isSelectingRef.current) {
-          console.log('Blocked by isSelectingRef');
           return;
         }
         
         if (!isOpen && hoveredParent) {
-          console.log('Blocked closing because hoveredParent exists');
           return;
         }
         
@@ -190,7 +177,6 @@ export function CategorySelect({
           const category = categories.find(c => c.id === hoveredParent);
           if (!category?.children || category.children.length === 0) return null;
           
-          console.log('=== Rendering submenu for:', category.name, 'children:', category.children.length);
           
           return (
             <div
@@ -201,15 +187,12 @@ export function CategorySelect({
                 left: `${submenuPosition.left}px`,
               }}
               onMouseEnter={() => {
-                console.log('=== Submenu mouse enter ===');
                 setHoveredParent(category.id);
               }}
               onMouseLeave={() => {
-                console.log('=== Submenu mouse leave ===');
                 setHoveredParent(null);
               }}
               onClick={(e) => {
-                console.log('=== Submenu container clicked ===');
                 e.stopPropagation();
               }}
             >
@@ -221,8 +204,6 @@ export function CategorySelect({
                     value === child.id && 'bg-accent'
                   )}
                   onClick={(e) => {
-                    console.log('=== Child category clicked (onClick) ===');
-                    console.log('child.id:', child.id);
                     e.stopPropagation();
                     handleSelect(child.id);
                   }}

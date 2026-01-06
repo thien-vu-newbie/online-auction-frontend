@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   getTopEndingSoon,
   getTopMostBids,
@@ -7,6 +8,7 @@ import {
   getProductsByCategory,
   searchProducts,
   searchProductsInCategory,
+  buyNow,
   type CategoryProductsParams,
   type SearchProductsParams,
   type ProductDetailResponse,
@@ -111,5 +113,25 @@ export function useSearchProductsInCategory(
     queryFn: () => searchProductsInCategory(categoryId!, params),
     enabled: !!categoryId,
     staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * Hook to buy product now with buyNowPrice
+ */
+export function useBuyNow() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (productId: string) => buyNow(productId),
+    onSuccess: (data) => {
+    toast.success('Mua sản phẩm thành công!');
+    queryClient.invalidateQueries({ queryKey: productKeys.detail(data.id) });
+    queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+},
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Không thể mua sản phẩm';
+      toast.error(message);
+    },
   });
 }

@@ -37,7 +37,7 @@ export const usePlaceAutoBid = () => {
     onSuccess: (_, { productId }) => {
       queryClient.invalidateQueries({ queryKey: ['bids', 'history', productId] });
       queryClient.invalidateQueries({ queryKey: ['bids', 'auto-bid', productId] });
-      queryClient.invalidateQueries({ queryKey: ['products', productId] });
+      queryClient.invalidateQueries({ queryKey: ['products', 'detail', productId] });
       queryClient.invalidateQueries({ queryKey: ['users', 'participating'] });
       toast.success('Đã đặt auto bid thành công');
     },
@@ -56,7 +56,7 @@ export const useUpdateAutoBid = () => {
     onSuccess: (_, { productId }) => {
       queryClient.invalidateQueries({ queryKey: ['bids', 'auto-bid', productId] });
       queryClient.invalidateQueries({ queryKey: ['bids', 'history', productId] });
-      queryClient.invalidateQueries({ queryKey: ['products', productId] });
+      queryClient.invalidateQueries({ queryKey: ['products', 'detail', productId] });
       toast.success('Đã cập nhật auto bid thành công');
     },
     onError: (error: any) => {

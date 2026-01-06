@@ -351,3 +351,11 @@ export const getAllProductsPaginated = async (page: number = 1, limit: number = 
     totalPages: response.data.totalPages,
   };
 };
+
+/**
+ * Buy product now with buyNowPrice
+ */
+export const buyNow = async (productId: string): Promise<Product> => {
+  const response = await apiClient.post<BackendProduct>(`/products/${productId}/buy-now`);
+  return transformProduct(response.data);
+};
