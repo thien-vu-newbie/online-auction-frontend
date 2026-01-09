@@ -51,6 +51,7 @@ interface BackendProductDetail extends BackendProduct {
     currentPrice: number;
     endTime: string;
     bidCount: number;
+    startTime: string;
   }>;
 }
 
@@ -152,7 +153,7 @@ const transformRelatedProduct = (product: BackendProductDetail['relatedProducts'
     sellerName: '',
     sellerRating: 100,
     bidCount: product.bidCount,
-    startTime: '',
+    startTime: product.startTime,
     endTime: product.endTime,
     createdAt: '',
     autoExtend: false,
