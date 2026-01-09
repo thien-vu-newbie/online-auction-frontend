@@ -14,6 +14,7 @@ import {
   UserIcon,
   WarningIcon,
   CalendarIcon,
+  TrophyIcon,
 } from '@phosphor-icons/react';
 import type { Product } from '@/types';
 import { formatCurrency, getRelativeTime, isEndingSoon, formatDateOnly } from '@/lib/formatters';
@@ -28,9 +29,12 @@ interface ProductCardProps {
 
 export function ProductCard({ product, className }: ProductCardProps) {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const endingSoon = isEndingSoon(product.endTime);
   const hasEnded = new Date(product.endTime) < new Date();
+  
+  // Check if current user is the highest bidder
+  const isUserWinning = isAuthenticated && user && product.highestBidderId === user.id;
 
   // Optimized watchlist check - no individual API calls
   const isInWatchlist = useWatchlistCheck(product.id);
@@ -67,6 +71,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
       className={cn(
         "group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 py-0 cursor-pointer h-full flex flex-col",
         product.isNew && "ring-2 ring-primary/50 shadow-primary/20",
+        isUserWinning && !hasEnded && "ring-2 ring-emerald-500/60 shadow-emerald-500/30 shadow-lg",
         className
       )}
     >
@@ -83,6 +88,12 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
+          {isUserWinning && !hasEnded && (
+            <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white backdrop-blur-sm gap-1 shadow-lg animate-pulse">
+              <TrophyIcon size={14} weight="fill" />
+              Bạn đang dẫn đầu
+            </Badge>
+          )}
           {product.isNew && (
             <Badge className="bg-primary/90 backdrop-blur-sm gap-1 shadow-lg">
               <SparkleIcon size={14} weight="fill" />
