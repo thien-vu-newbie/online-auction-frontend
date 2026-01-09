@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { useAddProductDescription } from '@/hooks/useSeller';
+import { productKeys } from '@/hooks/useProducts';
 
 interface AddDescriptionDialogProps {
   open: boolean;
@@ -19,12 +21,16 @@ export function AddDescriptionDialog({
   productName,
 }: AddDescriptionDialogProps) {
   const [content, setContent] = useState('');
+  const queryClient = useQueryClient();
   const addDescription = useAddProductDescription();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     await addDescription.mutateAsync({ productId, content });
+    
+    // Invalidate queries to refresh the product detail page
+    queryClient.invalidateQueries({ queryKey: productKeys.detail(productId) });
     
     onOpenChange(false);
     setContent('');

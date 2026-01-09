@@ -15,7 +15,6 @@ export function ProtectedRoute({ children, requireAdmin = false, requireSeller =
     return <Navigate to="/login" replace />;
   }
 
-  console.log("🚀 ~ ProtectedRoute ~ user:", user)
   if (requireAdmin && user?.role !== 'admin') {
     return <Navigate to="/" replace />;
   }

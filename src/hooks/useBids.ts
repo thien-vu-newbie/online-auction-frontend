@@ -34,12 +34,18 @@ export const usePlaceAutoBid = () => {
   return useMutation({
     mutationFn: ({ productId, data }: { productId: string; data: PlaceAutoBidRequest }) =>
       bidsApi.placeAutoBid(productId, data),
-    onSuccess: (_, { productId }) => {
+    onSuccess: (response, { productId }) => {
       queryClient.invalidateQueries({ queryKey: ['bids', 'history', productId] });
       queryClient.invalidateQueries({ queryKey: ['bids', 'auto-bid', productId] });
       queryClient.invalidateQueries({ queryKey: ['products', 'detail', productId] });
       queryClient.invalidateQueries({ queryKey: ['users', 'participating'] });
-      toast.success('Đã đặt auto bid thành công');
+      
+      // Hiển thị toast khác nhau dựa trên isTopBidder
+      if (response.isTopBidder) {
+        toast.success('🏆 Bạn đang dẫn đầu! Auto bid đã được đặt thành công.');
+      } else {
+        toast.info('✅ Auto bid đã được đặt, nhưng hiện có người bid cao hơn bạn.');
+      }
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Không thể đặt auto bid');

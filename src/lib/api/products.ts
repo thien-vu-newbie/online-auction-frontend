@@ -51,6 +51,7 @@ interface BackendProductDetail extends BackendProduct {
     currentPrice: number;
     endTime: string;
     bidCount: number;
+    startTime: string;
   }>;
 }
 
@@ -125,6 +126,7 @@ export const transformProduct = (backendProduct: BackendProduct): Product => {
     createdAt: backendProduct.createdAt,
     isNew: isNewProduct(backendProduct.createdAt),
     autoExtend: backendProduct.autoExtend,
+    allowUnratedBidders: backendProduct.allowUnratedBidders,
     isRejected: (backendProduct as any).isRejected || false,
     isWinning: (backendProduct as any).isWinning || false,
   };
@@ -151,7 +153,7 @@ const transformRelatedProduct = (product: BackendProductDetail['relatedProducts'
     sellerName: '',
     sellerRating: 100,
     bidCount: product.bidCount,
-    startTime: '',
+    startTime: product.startTime,
     endTime: product.endTime,
     createdAt: '',
     autoExtend: false,
