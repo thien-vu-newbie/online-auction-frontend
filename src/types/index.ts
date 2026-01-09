@@ -29,6 +29,7 @@ export interface Product {
   createdAt: string;
   isNew?: boolean;
   autoExtend: boolean;
+  allowUnratedBidders: boolean;
   isRejected?: boolean;
   isWinning?: boolean;
 }
@@ -53,8 +54,8 @@ export interface User {
   email: string;
   role: UserRole;
   rating: number;
-  totalRatings: number;
-  positiveRatings: number;
+  ratingPositive: number;
+  ratingNegative: number;
   avatar?: string;
   isVerified: boolean;
   dateOfBirth?: string;

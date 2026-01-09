@@ -9,6 +9,7 @@ import { SearchPage } from '@/pages/SearchPage';
 import { ProductsListPage } from '@/pages/ProductsListPage';
 import { WatchlistPage } from '@/pages/WatchlistPage';
 import { PostProductPage } from '@/pages/PostProductPage';
+import { EditProductPage } from '@/pages/EditProductPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
@@ -136,6 +137,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <PostProductPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/edit-product/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <EditProductPage />
                     </ProtectedRoute>
                   } 
                 />

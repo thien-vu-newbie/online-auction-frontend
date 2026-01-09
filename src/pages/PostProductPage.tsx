@@ -77,7 +77,7 @@ export function PostProductPage() {
       images,
     });
 
-    navigate('/profile');
+    navigate('/');
   };
 
   return (

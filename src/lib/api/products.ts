@@ -125,6 +125,7 @@ export const transformProduct = (backendProduct: BackendProduct): Product => {
     createdAt: backendProduct.createdAt,
     isNew: isNewProduct(backendProduct.createdAt),
     autoExtend: backendProduct.autoExtend,
+    allowUnratedBidders: backendProduct.allowUnratedBidders,
     isRejected: (backendProduct as any).isRejected || false,
     isWinning: (backendProduct as any).isWinning || false,
   };

@@ -10,6 +10,8 @@ interface ApiUser {
   email: string;
   fullName: string;
   role: string;
+  ratingPositive?: number;
+  ratingNegative?: number;
 }
 
 export function AuthCallbackPage() {
@@ -48,6 +50,11 @@ export function AuthCallbackPage() {
             const firstName = nameParts[0];
             const lastName = nameParts.slice(1).join(' ') || '';
 
+            const ratingPositive = apiUser.ratingPositive || 0;
+            const ratingNegative = apiUser.ratingNegative || 0;
+            const totalRatings = ratingPositive + ratingNegative;
+            const rating = totalRatings > 0 ? (ratingPositive / totalRatings) * 100 : 0;
+
             const user = {
               id: apiUser.id,
               email: apiUser.email,
@@ -55,9 +62,9 @@ export function AuthCallbackPage() {
               lastName,
               role: apiUser.role as 'admin' | 'seller' | 'bidder',
               isVerified: true,
-              rating: 0,
-              totalRatings: 0,
-              positiveRatings: 0,
+              ratingPositive,
+              ratingNegative,
+              rating,
               createdAt: new Date().toISOString(),
             };
 

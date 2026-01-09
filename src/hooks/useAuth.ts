@@ -33,17 +33,29 @@ const parseFullName = (fullName: string): { firstName: string; lastName: string 
 };
 
 // Helper to convert API user to app User type
-const mapApiUserToUser = (apiUser: { id: string; email: string; fullName: string; role: string }): User => {
+const mapApiUserToUser = (apiUser: { 
+  id: string; 
+  email: string; 
+  fullName: string; 
+  role: string;
+  ratingPositive?: number;
+  ratingNegative?: number;
+}): User => {
   const { firstName, lastName } = parseFullName(apiUser.fullName);
+  const ratingPositive = apiUser.ratingPositive || 0;
+  const ratingNegative = apiUser.ratingNegative || 0;
+  const totalRatings = ratingPositive + ratingNegative;
+  const rating = totalRatings > 0 ? (ratingPositive / totalRatings) * 100 : 0;
+  
   return {
     id: apiUser.id,
     firstName,
     lastName,
     email: apiUser.email,
     role: apiUser.role as User['role'],
-    rating: 0,
-    totalRatings: 0,
-    positiveRatings: 0,
+    ratingPositive,
+    ratingNegative,
+    rating,
     isVerified: true,
     createdAt: new Date().toISOString(),
   };

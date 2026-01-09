@@ -52,6 +52,7 @@ import {
   ArrowsClockwiseIcon,
   WarningCircleIcon,
   RobotIcon,
+  PencilSimpleIcon,
 } from '@phosphor-icons/react';
 import { ProductImageGallery } from '@/components/product/ProductImageGallery';
 import { BidHistory } from '@/components/product/BidHistory';
@@ -145,6 +146,21 @@ export function ProductDetailPage() {
   // After this point, product is guaranteed to be defined
   const suggestedBid = product.currentPrice + product.bidStep;
   const isSeller = user?.id === product.sellerId;
+
+  // Calculate user rating percentage
+  const ratingPositive = user?.ratingPositive || 0;
+  const ratingNegative = user?.ratingNegative || 0;
+  const totalRatings = ratingPositive + ratingNegative;
+  const userRatingPercentage = totalRatings > 0 ? (ratingPositive / totalRatings) * 100 : 0;
+  console.log('🔵 User rating percentage:', userRatingPercentage);
+  console.log('🔵 Total ratings:', totalRatings);
+  console.log('🔵 ratingPositive:', user?.ratingPositive);
+  console.log('🔵 user:', user);
+  // Check if user has insufficient rating based on product settings
+  const hasInsufficientRating = isAuthenticated && !product.allowUnratedBidders && (
+    totalRatings === 0 || userRatingPercentage < 80
+  );
+
 
   // Time-based calculations
   const now = new Date();
@@ -320,9 +336,36 @@ export function ProductDetailPage() {
                   </TooltipProvider>
                 )}
               </div>
-              <h1 className="text-2xl lg:text-3xl font-bold leading-tight">
-                {product.name}
-              </h1>
+              <div className="flex items-start justify-between gap-4">
+                <h1 className="text-2xl lg:text-3xl font-bold leading-tight flex-1">
+                  {product.name}
+                </h1>
+                {isSeller && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => navigate(`/edit-product/${productId}`)}
+                            disabled={product.bidCount > 0}
+                          >
+                            <PencilSimpleIcon size={16} />
+                            Chỉnh sửa
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {product.bidCount > 0 && (
+                        <TooltipContent>
+                          <p>Không thể chỉnh sửa vì sản phẩm đã có {product.bidCount} lượt đấu giá</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
             </div>
 
             {/* Price Section */}
@@ -480,62 +523,91 @@ export function ProductDetailPage() {
 
             {/* Bid Actions */}
             {!hasEnded && !isSeller && isAuthenticated && (
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  {/* Auto-bid Button */}
-                  <Button
-                    onClick={() => setAutoBidDialogOpen(true)}
-                    className="w-full gap-2 h-12 cursor-pointer"
-                    size="lg"
-                  >
-                    <RobotIcon size={20} weight="fill" />
-                    Đặt Auto Bid
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground">
-                    Hệ thống tự động đấu giá giúp bạn với giá tối ưu
-                  </p>
+              <>
+                {/* Rating Warning */}
+                {hasInsufficientRating && (
+                  <Card className="border-destructive bg-destructive/5">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <WarningCircleIcon size={24} weight="fill" className="text-destructive flex-shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                          <p className="font-semibold text-destructive">
+                            Không đủ điều kiện đấu giá
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {totalRatings === 0 
+                              ? 'Sản phẩm này không cho phép người dùng chưa có đánh giá tham gia đấu giá.'
+                              : `Điểm đánh giá của bạn là ${userRatingPercentage.toFixed(1)}%. Cần tối thiểu 80% để tham gia đấu giá sản phẩm này.`
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-                  {/* Buy Now Button */}
-                  {product.buyNowPrice && (
-                    <>
-                      <Separator />
-                      <Button
-                        onClick={handleBuyNow}
-                        disabled={buyNow.isPending}
-                        variant="outline"
-                        className="w-full gap-2 h-12 text-emerald-600 border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer"
-                        size="lg"
-                      >
-                        <ShoppingCartSimpleIcon size={20} />
-                        {buyNow.isPending ? 'Đang xử lý...' : `Mua ngay với giá ${formatCurrency(product.buyNowPrice)}`}
-                      </Button>
-                    </>
-                  )}
+                {/* Bidding Buttons - Red border when insufficient rating */}
+                <Card className={cn(hasInsufficientRating && "border-destructive")}>
+                  <CardContent className="p-6 space-y-4">
+                    {/* Auto-bid Button */}
+                    <Button
+                      onClick={() => setAutoBidDialogOpen(true)}
+                      disabled={hasInsufficientRating}
+                      className="w-full gap-2 h-12 cursor-pointer"
+                      size="lg"
+                    >
+                      <RobotIcon size={20} weight="fill" />
+                      Đặt Auto Bid
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      Hệ thống tự động đấu giá giúp bạn với giá tối ưu
+                    </p>
 
-                  {/* Watchlist Button */}
-                  <Separator />
-                  <Button
-                    onClick={toggleWatchlist}
-                    variant="ghost"
-                    className={cn(
-                      'w-full gap-2 cursor-pointer',
-                      isInWatchlist && 'text-destructive hover:text-destructive'
-                    )}
-                  >
-                    {isInWatchlist ? (
+                    {/* Buy Now Button */}
+                    {product.buyNowPrice && (
                       <>
-                        <HeartStraightIcon size={20} weight="fill" />
-                        Đã thêm vào yêu thích
-                      </>
-                    ) : (
-                      <>
-                        <HeartIcon size={20} />
-                        Thêm vào danh sách yêu thích
+                        <Separator />
+                        <Button
+                          onClick={handleBuyNow}
+                          disabled={buyNow.isPending || hasInsufficientRating}
+                          variant="outline"
+                          className="w-full gap-2 h-12 text-emerald-600 border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer"
+                          size="lg"
+                        >
+                          <ShoppingCartSimpleIcon size={20} />
+                          {buyNow.isPending ? 'Đang xử lý...' : `Mua ngay với giá ${formatCurrency(product.buyNowPrice)}`}
+                        </Button>
                       </>
                     )}
-                  </Button>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+
+                {/* Watchlist Button - Separate card without red border */}
+                <Card>
+                  <CardContent className="p-4">
+                    <Button
+                      onClick={toggleWatchlist}
+                      variant="ghost"
+                      className={cn(
+                        'w-full gap-2 cursor-pointer',
+                        isInWatchlist && 'text-destructive hover:text-destructive'
+                      )}
+                    >
+                      {isInWatchlist ? (
+                        <>
+                          <HeartStraightIcon size={20} weight="fill" />
+                          Đã thêm vào yêu thích
+                        </>
+                      ) : (
+                        <>
+                          <HeartIcon size={20} />
+                          Thêm vào danh sách yêu thích
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </>
             )}
 
             {!isAuthenticated && !hasEnded && !isSeller && (

@@ -24,7 +24,22 @@ export const useCreateProduct = () => {
     },
   });
 };
+export const useUpdateProduct = () => {
+  const queryClient = useQueryClient();
 
+  return useMutation({
+    mutationFn: ({ productId, data, images }: { productId: string; data: any; images?: File[] }) =>
+      sellerApi.updateProduct(productId, data, images),
+    onSuccess: (_, { productId }) => {
+      queryClient.invalidateQueries({ queryKey: ['products', productId] });
+      queryClient.invalidateQueries({ queryKey: ['seller', 'products'] });
+      toast.success('Đã cập nhật sản phẩm');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Không thể cập nhật sản phẩm');
+    },
+  });
+};
 export const useAddProductDescription = () => {
   const queryClient = useQueryClient();
 
