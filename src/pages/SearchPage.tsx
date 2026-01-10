@@ -48,7 +48,7 @@ export function SearchPage() {
     limit: 12,
   });
 
-  // Sync URL params with state - only update searchQuery from URL
+  // Sync URL params with state
   useEffect(() => {
     const queryFromUrl = searchParams.get('q') || '';
     const categoryFromUrl = searchParams.get('category') || '';
@@ -69,15 +69,29 @@ export function SearchPage() {
     }
   }, [searchParams]);
 
-  // Sync state changes back to URL
+  // Sync state changes back to URL (only when state actually changes)
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (searchQuery) params.set('q', searchQuery);
-    if (selectedCategory && selectedCategory !== 'all') params.set('category', selectedCategory);
-    if (sortBy !== SortBy.CREATED_DESC) params.set('sort', sortBy);
-    if (page > 1) params.set('page', page.toString());
-    setSearchParams(params, { replace: true });
-  }, [searchQuery, selectedCategory, sortBy, page, setSearchParams]);
+    const currentQuery = searchParams.get('q') || '';
+    const currentCategory = searchParams.get('category') || '';
+    const currentSort = searchParams.get('sort') || SortBy.CREATED_DESC;
+    const currentPage = Number(searchParams.get('page')) || 1;
+
+    // Only update URL if state is different from current URL params
+    const needsUpdate = 
+      searchQuery !== currentQuery ||
+      selectedCategory !== currentCategory ||
+      sortBy !== currentSort ||
+      page !== currentPage;
+
+    if (needsUpdate) {
+      const params = new URLSearchParams();
+      if (searchQuery) params.set('q', searchQuery);
+      if (selectedCategory && selectedCategory !== 'all') params.set('category', selectedCategory);
+      if (sortBy !== SortBy.CREATED_DESC) params.set('sort', sortBy);
+      if (page > 1) params.set('page', page.toString());
+      setSearchParams(params, { replace: true });
+    }
+  }, [searchQuery, selectedCategory, sortBy, page]);
 
   const handleCategoryChange = (value: string) => {
     console.log('=== SearchPage handleCategoryChange ===');
