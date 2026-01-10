@@ -13,6 +13,17 @@ import { ImageIcon, XIcon, ArrowLeftIcon } from '@phosphor-icons/react';
 import { useCreateProduct } from '@/hooks/useSeller';
 import { useAppSelector } from '@/store/hooks';
 
+// Helper functions for price formatting
+const formatPrice = (value: string): string => {
+  const num = value.replace(/\D/g, '');
+  if (!num) return '';
+  return Number(num).toLocaleString('de-DE');
+};
+
+const parsePrice = (value: string): string => {
+  return value.replace(/\./g, '');
+};
+
 export function PostProductPage() {
   const navigate = useNavigate();
   const categories = useAppSelector((state) => state.categories.categories);
@@ -181,11 +192,11 @@ export function PostProductPage() {
                     <Label htmlFor="startPrice">Giá khởi điểm (VNĐ) *</Label>
                     <Input
                       id="startPrice"
-                      type="number"
-                      value={formData.startPrice}
-                      onChange={(e) => setFormData({ ...formData, startPrice: e.target.value })}
+                      type="text"
+                      value={formatPrice(formData.startPrice)}
+                      onChange={(e) => setFormData({ ...formData, startPrice: parsePrice(e.target.value) })}
                       required
-                      min="0"
+                      placeholder="1.000.000"
                     />
                   </div>
 
@@ -193,11 +204,11 @@ export function PostProductPage() {
                     <Label htmlFor="stepPrice">Bước giá (VNĐ) *</Label>
                     <Input
                       id="stepPrice"
-                      type="number"
-                      value={formData.stepPrice}
-                      onChange={(e) => setFormData({ ...formData, stepPrice: e.target.value })}
+                      type="text"
+                      value={formatPrice(formData.stepPrice)}
+                      onChange={(e) => setFormData({ ...formData, stepPrice: parsePrice(e.target.value) })}
                       required
-                      min="1000"
+                      placeholder="100.000"
                     />
                   </div>
                 </div>
@@ -206,11 +217,10 @@ export function PostProductPage() {
                   <Label htmlFor="buyNowPrice">Giá mua ngay (VNĐ)</Label>
                   <Input
                     id="buyNowPrice"
-                    type="number"
-                    value={formData.buyNowPrice}
-                    onChange={(e) => setFormData({ ...formData, buyNowPrice: e.target.value })}
-                    min="0"
-                    placeholder="Tùy chọn"
+                    type="text"
+                    value={formatPrice(formData.buyNowPrice)}
+                    onChange={(e) => setFormData({ ...formData, buyNowPrice: parsePrice(e.target.value) })}
+                    placeholder="Tùy chọn (VD: 5.000.000)"
                   />
                 </div>
 

@@ -136,7 +136,7 @@ export function CategorySelect({
             {categories.map((category) => (
               <div
                 key={category.id}
-                ref={(el) => (parentItemRefs.current[category.id] = el)}
+                ref={(el) => {parentItemRefs.current[category.id] = el;}}
                 className={cn(
                   'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground font-semibold transition-colors',
                   value === category.id && 'bg-accent'

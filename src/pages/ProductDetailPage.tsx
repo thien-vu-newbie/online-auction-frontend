@@ -152,10 +152,7 @@ export function ProductDetailPage() {
   const ratingNegative = user?.ratingNegative || 0;
   const totalRatings = ratingPositive + ratingNegative;
   const userRatingPercentage = totalRatings > 0 ? (ratingPositive / totalRatings) * 100 : 0;
-  console.log('🔵 User rating percentage:', userRatingPercentage);
-  console.log('🔵 Total ratings:', totalRatings);
-  console.log('🔵 ratingPositive:', user?.ratingPositive);
-  console.log('🔵 user:', user);
+
   // Check if user has insufficient rating based on product settings
   const hasInsufficientRating = isAuthenticated && !product.allowUnratedBidders && (
     totalRatings === 0 || userRatingPercentage < 80
@@ -331,6 +328,21 @@ export function ProductDetailPage() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>Tự động gia hạn 10 phút nếu có lượt đấu giá mới trong 5 phút cuối</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+                {!product.allowUnratedBidders && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Badge variant="outline" className="gap-1">
+                          <UserIcon size={12} />
+                          Chỉ cho phép người đánh giá tích cực
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>NChỉ cho phép người đánh giá tích cực tham gia đấu giá</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

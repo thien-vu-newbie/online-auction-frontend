@@ -59,11 +59,17 @@ export const useUpdateAutoBid = () => {
   return useMutation({
     mutationFn: ({ productId, data }: { productId: string; data: UpdateAutoBidRequest }) =>
       bidsApi.updateAutoBid(productId, data),
-    onSuccess: (_, { productId }) => {
+    onSuccess: (response, { productId }) => {
       queryClient.invalidateQueries({ queryKey: ['bids', 'auto-bid', productId] });
       queryClient.invalidateQueries({ queryKey: ['bids', 'history', productId] });
       queryClient.invalidateQueries({ queryKey: ['products', 'detail', productId] });
-      toast.success('Đã cập nhật auto bid thành công');
+      
+      // Hiển thị toast dựa trên isTopBidder
+      if (response.isTopBidder) {
+        toast.success('🏆 Bạn đang dẫn đầu! Auto bid đã được cập nhật.');
+      } else {
+        toast.info('✅ Auto bid đã cập nhật, nhưng hiện có người bid cao hơn bạn.');
+      }
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Không thể cập nhật auto bid');

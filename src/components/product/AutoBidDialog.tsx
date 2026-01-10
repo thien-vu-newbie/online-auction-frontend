@@ -22,6 +22,18 @@ import {
 import { formatCurrency } from '@/lib/formatters';
 import { usePlaceAutoBid, useUpdateAutoBid, useAutoBidConfig } from '@/hooks/useBids';
 
+// Helper functions for price formatting
+const formatPrice = (value: string | number): string => {
+  const num = String(value).replace(/\D/g, '');
+  if (!num) return '';
+  return Number(num).toLocaleString('de-DE');
+};
+
+const parsePrice = (value: string): number => {
+  const cleaned = value.replace(/\./g, '');
+  return Number(cleaned) || 0;
+};
+
 interface AutoBidDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -48,6 +60,7 @@ export function AutoBidDialog({
   
   const defaultMaxBidAmount = autoBidConfig?.maxBidAmount ?? suggestedBid;
   const [maxBidAmount, setMaxBidAmount] = useState(defaultMaxBidAmount);
+  const [maxBidAmountInput, setMaxBidAmountInput] = useState(formatPrice(defaultMaxBidAmount));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,13 +145,15 @@ export function AutoBidDialog({
               </Label>
               <Input
                 id="maxBidAmount"
-                type="number"
-                value={maxBidAmount}
-                onChange={(e) => setMaxBidAmount(Number(e.target.value))}
-                min={minAmount}
-                step={stepPrice}
+                type="text"
+                value={maxBidAmountInput}
+                onChange={(e) => {
+                  const input = e.target.value;
+                  setMaxBidAmountInput(formatPrice(input));
+                  setMaxBidAmount(parsePrice(input));
+                }}
                 className="text-lg font-semibold"
-                placeholder={formatCurrency(minAmount)}
+                placeholder={formatPrice(minAmount)}
               />
               {!isValid && (
                 <p className="text-xs text-destructive flex items-center gap-1">
@@ -160,9 +175,6 @@ export function AutoBidDialog({
                 </div>
                 <div className="text-xs text-muted-foreground space-y-1">
                   <div>Giá tối đa hiện tại: <span className="font-semibold">{formatCurrency(autoBidConfig.maxBidAmount)}</span></div>
-                  <div>Trạng thái: <Badge variant={autoBidConfig.isActive ? 'default' : 'secondary'} className="text-xs">
-                    {autoBidConfig.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
-                  </Badge></div>
                 </div>
               </motion.div>
             )}
