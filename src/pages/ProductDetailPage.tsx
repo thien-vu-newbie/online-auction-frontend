@@ -423,15 +423,34 @@ export function ProductDetailPage() {
                 {/* Highest Bidder */}
                 {product.highestBidderName && (
                   <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-900">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-amber-100 text-amber-700">
-                        <UserIcon size={20} />
-                      </AvatarFallback>
-                    </Avatar>
+                    {isSeller && product.highestBidderId ? (
+                      <Link to={`/user/${product.highestBidderId}/ratings`}>
+                        <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-amber-500 transition-all">
+                          <AvatarFallback className="bg-amber-100 text-amber-700">
+                            <UserIcon size={20} />
+                          </AvatarFallback>
+                        </Avatar>
+                      </Link>
+                    ) : (
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-amber-100 text-amber-700">
+                          <UserIcon size={20} />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {product.highestBidderName}
-                      </p>
+                      {isSeller && product.highestBidderId ? (
+                        <Link
+                          to={`/user/${product.highestBidderId}/ratings`}
+                          className="text-sm font-medium truncate hover:text-primary hover:underline transition-colors block"
+                        >
+                          {product.highestBidderName}
+                        </Link>
+                      ) : (
+                        <p className="text-sm font-medium truncate">
+                          {product.highestBidderName}
+                        </p>
+                      )}
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <StarIcon size={12} weight="fill" className="text-amber-500" />
                         <span>{product.highestBidderRating}% đánh giá tích cực</span>
@@ -639,14 +658,16 @@ export function ProductDetailPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-14 w-14">
-                    <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                      {product.sellerName.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <Link to={`/user/${product.sellerId}/ratings`}>
+                    <Avatar className="h-14 w-14 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
+                      <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                        {product.sellerName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
                   <div className="flex-1 min-w-0">
                     <Link
-                      to={`/seller/${product.sellerId}`}
+                      to={`/user/${product.sellerId}/ratings`}
                       className="font-semibold hover:text-primary transition-colors"
                     >
                       {product.sellerName}

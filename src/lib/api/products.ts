@@ -118,7 +118,7 @@ export const transformProduct = (backendProduct: BackendProduct): Product => {
     sellerName: seller?.fullName || 'Không xác định',
     sellerRating: seller ? calculateRating(seller.ratingPositive, seller.ratingNegative) : 100,
     highestBidderId: winner?._id,
-    highestBidderName: winner?.fullName ? `****${winner.fullName.slice(-4)}` : undefined,
+    highestBidderName: winner?.fullName, // Backend already masks this for non-sellers
     highestBidderRating: winner ? calculateRating(winner.ratingPositive, winner.ratingNegative) : undefined,
     bidCount: backendProduct.bidCount,
     startTime: backendProduct.startTime,

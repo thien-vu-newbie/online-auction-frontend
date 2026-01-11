@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -107,9 +108,18 @@ export function BidHistory({ productId, isSeller = false, hasEnded = false }: Bi
                         className="text-amber-500"
                       />
                     )}
-                    <span className={isHighest ? 'font-semibold' : ''}>
-                      {bidderName}
-                    </span>
+                    {isSeller && bidderId ? (
+                      <Link
+                        to={`/user/${bidderId}/ratings`}
+                        className={`hover:text-primary hover:underline transition-colors ${isHighest ? 'font-semibold' : ''}`}
+                      >
+                        {bidderName}
+                      </Link>
+                    ) : (
+                      <span className={isHighest ? 'font-semibold' : ''}>
+                        {bidderName}
+                      </span>
+                    )}
                     {isRejected && (
                       <Badge variant="outline" className="text-muted-foreground">
                         Đã từ chối

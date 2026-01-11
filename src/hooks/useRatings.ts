@@ -25,6 +25,14 @@ export const useProductRatings = (productId: string | undefined) => {
   });
 };
 
+export const useUserRatings = (userId: string | undefined, page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: ['ratings', 'user', userId, page, limit],
+    queryFn: () => ratingsApi.getUserRatings(userId!, page, limit),
+    enabled: !!userId,
+  });
+};
+
 export const useCreateRating = () => {
   const queryClient = useQueryClient();
 

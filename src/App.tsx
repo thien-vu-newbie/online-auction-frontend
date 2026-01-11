@@ -20,6 +20,7 @@ import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { SellerUpgradeRequestsPage } from './pages/admin/SellerUpgradeRequestsPage';
 import { ProductManagementPage } from './pages/admin/ProductManagementPage';
 import { OrderCompletionPage } from './pages/OrderCompletionPage';
+import { UserRatingsPage } from './pages/UserRatingsPage';
 import { Toaster } from '@/components/ui/sonner';
 import { useAppDispatch } from '@/store/hooks';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
@@ -116,6 +117,7 @@ function App() {
                 <Route path="/products" element={<ProductsListPage />} />
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
+                <Route path="/user/:userId/ratings" element={<UserRatingsPage />} />
                 <Route 
                   path="/watchlist" 
                   element={

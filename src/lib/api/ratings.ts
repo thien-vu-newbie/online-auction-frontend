@@ -51,6 +51,26 @@ export interface RatingsResponse {
   };
 }
 
+export interface UserRatingsResponse {
+  user: {
+    _id: string;
+    fullName: string;
+    email: string;
+  };
+  ratings: Rating[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+  summary: {
+    ratingPositive: number;
+    ratingNegative: number;
+    ratingPercentage: number;
+  };
+}
+
 export interface ProductRatingsResponse {
   productId: string;
   productName: string;
@@ -93,6 +113,13 @@ export const ratingsApi = {
     const response = await apiClient.post(
       `/ratings/products/${productId}/cancel-transaction`
     );
+    return response.data;
+  },
+
+  async getUserRatings(userId: string, page: number = 1, limit: number = 10) {
+    const response = await apiClient.get<UserRatingsResponse>(`/ratings/users/${userId}`, {
+      params: { page, limit },
+    });
     return response.data;
   },
 };
