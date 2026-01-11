@@ -66,7 +66,9 @@ export const useRejectBidder = () => {
     onSuccess: (_, { productId }) => {
       queryClient.invalidateQueries({ queryKey: ['bids', 'seller-history', productId] });
       queryClient.invalidateQueries({ queryKey: ['bids', 'history', productId] });
+      queryClient.invalidateQueries({ queryKey: ['bids', 'auto-bid', productId] });
       queryClient.invalidateQueries({ queryKey: ['products', productId] });
+      queryClient.invalidateQueries({ queryKey: ['products', 'detail', productId] });
       toast.success('Đã từ chối người đấu giá');
     },
     onError: (error: any) => {
