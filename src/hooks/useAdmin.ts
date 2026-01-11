@@ -28,6 +28,36 @@ export const useAdminUserById = (userId: string | undefined) => {
   });
 };
 
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userId: string) => adminApi.deleteUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      toast.success('Đã xóa người dùng thành công');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Không thể xóa người dùng');
+    },
+  });
+};
+
+export const useResetUserPassword = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userId: string) => adminApi.resetUserPassword(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      toast.success('Đã reset mật khẩu và gửi email cho người dùng');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Không thể reset mật khẩu');
+    },
+  });
+};
+
 // Seller Upgrade
 export const useUpgradeSeller = () => {
   const queryClient = useQueryClient();
