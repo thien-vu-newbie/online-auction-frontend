@@ -48,6 +48,16 @@ export const adminApi = {
     return response.data;
   },
 
+  deleteUser: async (userId: string) => {
+    const response = await apiClient.delete(`/admin/users/${userId}`);
+    return response.data;
+  },
+
+  resetUserPassword: async (userId: string) => {
+    const response = await apiClient.post(`/admin/users/${userId}/reset-password`);
+    return response.data;
+  },
+
   // Seller Upgrade
   async upgradeSeller(data: UpgradeSellerRequest) {
     const response = await apiClient.post('/admin/upgrade-seller', data);

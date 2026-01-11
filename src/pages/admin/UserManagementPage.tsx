@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MagnifyingGlassIcon, ShieldCheckIcon, EyeIcon } from '@phosphor-icons/react';
+import { MagnifyingGlassIcon, ShieldCheckIcon, EyeIcon, TrashIcon, KeyIcon } from '@phosphor-icons/react';
 import {
   Tooltip,
   TooltipContent,
@@ -27,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useAdminUsers, useAdminUserById } from '@/hooks/useAdmin';
+import { useAdminUsers, useAdminUserById, useDeleteUser, useResetUserPassword } from '@/hooks/useAdmin';
 import { formatDate } from '@/lib/formatters';
 
 export function UserManagementPage() {
@@ -35,9 +35,13 @@ export function UserManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   
   const { data, isLoading } = useAdminUsers(page, 20);
   const { data: selectedUser, isLoading: userLoading } = useAdminUserById(selectedUserId || undefined);
+  const deleteUser = useDeleteUser();
+  const resetPassword = useResetUserPassword();
 
   const handleViewUser = (userId: string) => {
     setSelectedUserId(userId);
@@ -46,6 +50,20 @@ export function UserManagementPage() {
 
   const handleCloseDialog = () => {
     setViewDialogOpen(false);
+    setSelectedUserId(null);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUserId) return;
+    await deleteUser.mutateAsync(selectedUserId);
+    setDeleteDialogOpen(false);
+    setSelectedUserId(null);
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUserId) return;
+    await resetPassword.mutateAsync(selectedUserId);
+    setResetPasswordDialogOpen(false);
     setSelectedUserId(null);
   };
 
@@ -214,22 +232,67 @@ export function UserManagementPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleViewUser(user._id)}
-                                >
-                                  <EyeIcon size={16} />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Xem chi tiết</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <div className="flex items-center justify-end gap-2">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleViewUser(user._id)}
+                                  >
+                                    <EyeIcon size={16} />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Xem chi tiết</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            {user.role !== 'admin' && (
+                              <>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => {
+                                          setSelectedUserId(user._id);
+                                          setResetPasswordDialogOpen(true);
+                                        }}
+                                      >
+                                        <KeyIcon size={16} />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Reset mật khẩu</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-destructive hover:bg-destructive hover:text-white"
+                                        onClick={() => {
+                                          setSelectedUserId(user._id);
+                                          setDeleteDialogOpen(true);
+                                        }}
+                                      >
+                                        <TrashIcon size={16} />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Xóa người dùng</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -340,6 +403,53 @@ export function UserManagementPage() {
               </div>
             </div>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa người dùng</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Hủy
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteUser}
+              disabled={deleteUser.isPending}
+            >
+              {deleteUser.isPending ? 'Đang xóa...' : 'Xóa người dùng'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận reset mật khẩu</DialogTitle>
+            <DialogDescription>
+              Mật khẩu mới sẽ được tạo tự động và gửi qua email cho người dùng. Người dùng sẽ bị đăng xuất khỏi tất cả thiết bị.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setResetPasswordDialogOpen(false)}>
+              Hủy
+            </Button>
+            <Button 
+              onClick={handleResetPassword}
+              disabled={resetPassword.isPending}
+            >
+              {resetPassword.isPending ? 'Đang reset...' : 'Reset mật khẩu'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </AdminLayout>
