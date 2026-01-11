@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, EyeIcon, TrashIcon, TagIcon } from '@phosphor-icons/react';
+import { PlusIcon, EyeIcon, TrashIcon, TagIcon, PencilSimpleIcon } from '@phosphor-icons/react';
 import {
   Tooltip,
   TooltipContent,
@@ -175,6 +175,20 @@ export function CategoryManagementPage() {
                             <Button
                               size="sm"
                               variant="outline"
+                              onClick={() => openEditDialog(category)}
+                            >
+                              <PencilSimpleIcon size={16} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Chỉnh sửa danh mục</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
                               className="text-destructive hover:bg-destructive hover:text-white"
                               onClick={() => openDeleteDialog(category)}
                             >
@@ -249,11 +263,11 @@ export function CategoryManagementPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Chỉnh sửa danh mục</DialogTitle>
-            <DialogDescription>Cập nhật tên hoặc parent category</DialogDescription>
+            <DialogDescription>Cập nhật tên hoặc danh mục cha</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="edit-name">Tên danh mục</Label>
+              <Label className='mb-2' htmlFor="edit-name">Tên danh mục</Label>
               <Input
                 id="edit-name"
                 value={formData.name}
@@ -261,7 +275,7 @@ export function CategoryManagementPage() {
               />
             </div>
             <div>
-              <Label htmlFor="edit-parent">Danh mục cha (tùy chọn)</Label>
+              <Label className='mb-2' htmlFor="edit-parent">Danh mụcLabel(tùy chọn)</Label>
               <Select
                 value={formData.parentId}
                 onValueChange={(value) => setFormData({ ...formData, parentId: value })}
